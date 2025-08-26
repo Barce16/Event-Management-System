@@ -57,7 +57,20 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt(['username' => $this->username, 'password' => $this->password], $this->boolean('remember'))) {
+        // Get the user by username
+        $user = \App\Models\User::where('username', $this->username)->first();
+
+        // Blocked check
+        if ($user && $user->status === 'blocked') {
+            throw ValidationException::withMessages([
+                'username' => 'This account has been blocked by an administrator.',
+            ]);
+        }
+
+        if (! Auth::attempt(
+            ['username' => $this->username, 'password' => $this->password],
+            $this->boolean('remember')
+        )) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -67,6 +80,7 @@ class LoginRequest extends FormRequest
 
         RateLimiter::clear($this->throttleKey());
     }
+
 
     /**
      * Ensure the login request is not rate limited.
@@ -96,6 +110,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
+        return Str::transliterate(Str::lower($this->string('username')) . '|' . $this->ip());
     }
 }

@@ -25,8 +25,18 @@ class AuthenticatedSessionController extends Controller
 
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Find user by email/username before trying to authenticate
+        $user = \App\Models\User::where('email', $request->email)->first();
+
+        if ($user && $user->status === 'blocked') {
+            return back()->withErrors([
+                'email' => 'This account has been blocked by an administrator.',
+            ]);
+        }
+
         $request->authenticate();
         $request->session()->regenerate();
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
