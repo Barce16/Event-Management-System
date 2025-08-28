@@ -17,7 +17,7 @@
         .hero-bg {
             background-image:
                 linear-gradient(to bottom, rgba(0, 0, 0, .55), rgba(0, 0, 0, .55)),
-                /* swap this later with your own hero image */
+
                 url('https://images.unsplash.com/photo-1617872051806-e9e08b70d3af?q=80&w=1170&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
@@ -138,8 +138,6 @@
                             </a>
                         </div>
                         @endguest
-
-                        {{-- intentionally no mention of staff/admin --}}
                     </div>
                 </div>
             </div>
@@ -150,7 +148,7 @@
         </div>
     </section>
 
-    <!-- FEATURE CARDS (client-facing only) -->
+    <!-- FEATURE CARDS -->
     <section class="py-16 sm:py-20">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

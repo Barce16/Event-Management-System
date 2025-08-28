@@ -60,4 +60,9 @@ class AdminController extends Controller
         $user->update(['status' => 'active']);
         return back()->with('success', 'User has been unblocked.');
     }
+
+    public function managementIndex()
+    {
+        return view('admin.management.index');
+    }
 }

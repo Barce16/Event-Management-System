@@ -14,9 +14,17 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @php($user = Auth::user())
+                    @if($user && $user->user_type === 'customer')
+                    <x-nav-link :href="route('customer.events.index')"
+                        :active="request()->routeIs('customer.events.*')">
+                        {{ __('My Events') }}
+                    </x-nav-link>
+                    @endif
                     @auth
                     @if (Auth::user()->user_type === 'admin' || Auth::user()->user_type === 'staff' )
-                    <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
+                    <x-nav-link :href="route('admin.events.index')" :active="request()->routeIs('admin.events.*')">
                         {{ __('Events') }}
                     </x-nav-link>
 
@@ -37,10 +45,18 @@
                     </x-nav-link>
                     @endif
                     @endauth
+                    {{-- ADMIN ONLY --}}
+                    @if(auth()->check() && auth()->user()->user_type === 'admin')
+                    <x-nav-link :href="route('admin.management.index')"
+                        :active="request()->routeIs('admin.management.*')">
+                        {{ __('Management') }}
+                    </x-nav-link>
+                    @endif
+
                 </div>
             </div>
 
-            <!-- Settings Dropdown (unchanged) -->
+            <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -95,7 +111,7 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
+            <x-responsive-nav-link :href="route('customer.events.index')" :active="request()->routeIs('events.*')">
                 {{ __('Events') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')">

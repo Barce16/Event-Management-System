@@ -37,7 +37,9 @@
             <div class="bg-white shadow-sm rounded-lg p-6">
                 <h3 class="font-semibold mb-3">Quick Actions</h3>
                 <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('events.create') }}" class="bg-sky-900 text-white px-4 py-2 rounded">New Event</a>
+                    {{-- <a href="{{ route('customers.events.create') }}"
+                        class="bg-sky-900 text-white px-4 py-2 rounded">New
+                        Event</a> --}}
                     <a href="{{ route('customers.create') }}" class="bg-emerald-700 text-white px-4 py-2 rounded">Add
                         Customer</a>
                     <a href="{{ route('payments.index') }}" class="bg-violet-700 text-white px-4 py-2 rounded">View
@@ -101,9 +103,11 @@
             <div class="bg-white shadow-sm rounded-lg p-6">
                 <h3 class="font-semibold mb-3">Quick Actions</h3>
                 <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('events.create') }}" class="bg-sky-900 text-white px-4 py-2 rounded">Book an
+                    <a href="{{ route('customer.events.create') }}" class="bg-sky-900 text-white px-4 py-2 rounded">Book
+                        an
                         Event</a>
-                    <a href="{{ route('events.index') }}" class="bg-emerald-700 text-white px-4 py-2 rounded">My
+                    <a href="{{ route('customer.events.index') }}"
+                        class="bg-emerald-700 text-white px-4 py-2 rounded">My
                         Events</a>
                     <a href="{{ route('payments.index') }}" class="bg-violet-700 text-white px-4 py-2 rounded">My
                         Payments</a>

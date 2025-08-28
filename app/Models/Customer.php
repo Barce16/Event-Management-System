@@ -14,7 +14,7 @@ class Customer extends Model
 
     public function events()
     {
-        return $this->hasMany(\App\Models\Event::class);
+        return $this->hasMany(Event::class);
     }
 
     public function user()
