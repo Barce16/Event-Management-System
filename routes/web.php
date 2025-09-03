@@ -29,8 +29,7 @@ Route::middleware('auth')->group(function () {
         ->prefix('customer')
         ->name('customer.')
         ->group(function () {
-            Route::resource('events', CustomerEventController::class)
-                ->only(['index', 'create', 'store', 'show']);
+            Route::resource('events', CustomerEventController::class);
         });
 
 
@@ -61,6 +60,12 @@ Route::middleware('auth')->group(function () {
                 Route::get('vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');
                 Route::get('vendors/{vendor}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
                 Route::patch('vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
+
+                Route::resource('packages', controller: PackageController::class)
+                    ->names('packages');
+
+                Route::patch('packages/{package}/toggle', [PackageController::class, 'toggle'])
+                    ->name('packages.toggle');
             });
         });
 

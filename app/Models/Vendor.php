@@ -10,12 +10,18 @@ class Vendor extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'contact_person', 'category', 'email', 'phone', 'notes', 'is_active'];
+    protected $fillable = ['name', 'contact_person', 'price', 'category', 'email', 'phone', 'notes', 'is_active'];
 
     public function packages()
     {
         return $this->belongsToMany(Package::class)
             ->withPivot(['included_price', 'notes'])
+            ->withTimestamps();
+    }
+
+    public function events()
+    {
+        return $this->belongsToMany(Event::class)
             ->withTimestamps();
     }
 }

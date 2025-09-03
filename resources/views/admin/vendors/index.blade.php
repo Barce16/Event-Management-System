@@ -17,6 +17,7 @@
                     <th class="text-left py-2">Vendor</th>
                     <th class="text-left py-2">Contact</th>
                     <th class="text-left py-2">Email / Phone</th>
+                    <th class="text-left py-2">Price</th>
                     <th class="text-left py-2">Status</th>
                     <th class="text-left py-2">Actions</th>
                 </tr>
@@ -32,6 +33,9 @@
                     <td class="py-2">
                         <div>{{ $v->email ?: '—' }}</div>
                         <div class="text-gray-500">{{ $v->phone ?: '' }}</div>
+                    </td>
+                    <td class="py-2">
+                        ₱ {{ number_format($v->price ?? 0, 2) }}
                     </td>
                     <td class="py-2">
                         @php

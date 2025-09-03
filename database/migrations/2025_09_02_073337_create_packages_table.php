@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->string('name', 120)->unique();
             $table->string('slug', 140)->unique();
             $table->text('description')->nullable();
-            $table->decimal('base_price', 12, 2)->default(0);
+            $table->decimal('price', 12, 2)->default(0);
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();

@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name', 150);
             $table->string('contact_person', 150)->nullable();
+            $table->decimal('price', 12, 2)->default(0);
             $table->string('category', 100)->nullable(); // e.g. Catering, Photo/Video, Lights & Sounds
             $table->string('email')->nullable();
             $table->string('phone', 60)->nullable();

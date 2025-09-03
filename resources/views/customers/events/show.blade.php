@@ -2,68 +2,63 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800">{{ $event->name }}</h2>
-            <a href="{{ route('customer.events.index') }}" class="underline">Back</a>
+            <a href="{{ route('customer.events.edit', $event) }}"
+                class="px-3 py-2 bg-gray-800 text-white rounded">Edit</a>
         </div>
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
-            <div class="bg-white shadow-sm rounded-lg p-6">
-                <dl class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <dt class="text-gray-600">Date</dt>
-                        <dd class="font-medium">{{ $event->event_date?->format('M d, Y') }}</dd>
+                        <div class="text-gray-600 text-sm">Date</div>
+                        <div class="font-medium">{{
+                            \Illuminate\Support\Carbon::parse($event->event_date)->format('Y-m-d') }}</div>
                     </div>
                     <div>
-                        <dt class="text-gray-600">Venue</dt>
-                        <dd class="font-medium">{{ $event->venue ?? '—' }}</dd>
+                        <div class="text-gray-600 text-sm">Status</div>
+                        <div><span class="px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">{{
+                                ucfirst($event->status) }}</span></div>
                     </div>
                     <div>
-                        <dt class="text-gray-600">Theme</dt>
-                        <dd class="font-medium">{{ $event->theme ?? '—' }}</dd>
+                        <div class="text-gray-600 text-sm">Package</div>
+                        <div class="font-medium">{{ $event->package?->name ?? '—' }}</div>
                     </div>
                     <div>
-                        <dt class="text-gray-600">Budget</dt>
-                        <dd class="font-medium">{{ is_null($event->budget) ? '—' : '₱'.number_format($event->budget,2)
-                            }}</dd>
+                        <div class="text-gray-600 text-sm">Venue</div>
+                        <div class="font-medium">{{ $event->venue ?: '—' }}</div>
                     </div>
                     <div>
-                        <dt class="text-gray-600">Guests</dt>
-                        <dd class="font-medium">{{ $event->guest_count ?? '—' }}</dd>
+                        <div class="text-gray-600 text-sm">Theme</div>
+                        <div class="font-medium">{{ $event->theme ?: '—' }}</div>
                     </div>
                     <div>
-                        <dt class="text-gray-600">Status</dt>
-                        <dd><span class="px-2 py-1 bg-gray-100 rounded capitalize">{{ $event->status }}</span></dd>
+                        <div class="text-gray-600 text-sm">Guests</div>
+                        <div class="font-medium">{{ $event->guest_count ?: '—' }}</div>
                     </div>
-                </dl>
-                <div class="mt-4">
-                    <div class="text-gray-600 text-sm">Notes</div>
-                    <div>{{ $event->notes ?? '—' }}</div>
+                    <div class="md:col-span-2">
+                        <div class="text-gray-600 text-sm">Notes</div>
+                        <div class="font-medium whitespace-pre-line">{{ $event->notes ?: '—' }}</div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="bg-white shadow-sm rounded-lg p-6">
-                <h3 class="font-semibold mb-2">Selected Services</h3>
-                @if ($event->services->isEmpty())
-                <p class="text-sm text-gray-600">No services selected.</p>
-                @else
-                <table class="min-w-full text-sm">
-                    <thead class="text-gray-600">
-                        <tr>
-                            <th class="text-left py-2">Service</th>
-                            <th class="text-left py-2">Price </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($event->services as $s)
-                        <tr class="border-t">
-                            <td class="py-2">{{ $s->name }}</td>
-                            <td class="py-2">₱{{ number_format($s->pivot->price ?? 0, 2) }}</td>
-                        </tr>
+                <div class="mt-6">
+                    <h3 class="font-semibold mb-2">Selected Vendors</h3>
+                    @if($event->vendors->count())
+                    <ul class="list-disc pl-6">
+                        @foreach($event->vendors as $v)
+                        <li>{{ $v->name }} @if(!is_null($v->price)) — ₱{{ number_format($v->price,2) }} @endif</li>
                         @endforeach
-                    </tbody>
-                </table>
-                @endif
+                    </ul>
+                    @else
+                    <div class="text-gray-500">None selected.</div>
+                    @endif
+                </div>
+
+                <div class="mt-6">
+                    <a href="{{ route('customer.events.index') }}" class="underline">Back to events</a>
+                </div>
             </div>
         </div>
     </div>

@@ -8,31 +8,37 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <div class="text-gray-600 text-sm">Contact Person</div>
-                <div class="font-medium">{{ $vendor->contact_person ?: '—' }}</div>
+                <div class="text-gray-600 text-sm">Price</div>
+                <div class="font-medium">₱{{ number_format($vendor->price, 2) }}</div>
             </div>
+
             <div>
                 <div class="text-gray-600 text-sm">Status</div>
                 <div>
-                    @php $badge = $vendor->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+                    @php
+                    $badge = $vendor->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
                     @endphp
                     <span class="px-2 py-1 rounded text-xs {{ $badge }}">
                         {{ $vendor->is_active ? 'Active' : 'Inactive' }}
                     </span>
                 </div>
             </div>
+
             <div>
                 <div class="text-gray-600 text-sm">Email</div>
                 <div class="font-medium">{{ $vendor->email ?: '—' }}</div>
             </div>
+
             <div>
                 <div class="text-gray-600 text-sm">Phone</div>
                 <div class="font-medium">{{ $vendor->phone ?: '—' }}</div>
             </div>
+
             <div class="md:col-span-2">
                 <div class="text-gray-600 text-sm">Address</div>
                 <div class="font-medium">{{ $vendor->address ?: '—' }}</div>
             </div>
+
             <div class="md:col-span-2">
                 <div class="text-gray-600 text-sm">Notes</div>
                 <div class="font-medium whitespace-pre-line">{{ $vendor->notes ?: '—' }}</div>

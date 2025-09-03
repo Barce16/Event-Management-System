@@ -16,6 +16,10 @@
                         class="block px-3 py-2 rounded {{ request()->routeIs('admin.management.vendors.*') ? 'bg-gray-100 font-medium' : '' }}">
                         Vendors
                     </a>
+                    <a href="{{ route('admin.management.packages.index') }}"
+                        class="block px-3 py-2 rounded {{ request()->routeIs('admin.management.packages.*') ? 'bg-gray-100 font-medium' : '' }}">
+                        Packages
+                    </a>
                 </nav>
             </aside>
 

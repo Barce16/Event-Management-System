@@ -23,7 +23,7 @@ class StoreServiceRequest extends FormRequest
                 Rule::unique('services', 'name')->whereNull('deleted_at'),
             ],
             'description' => ['nullable', 'string'],
-            'base_price'  => ['required', 'numeric', 'min:0'],
+            'price'  => ['required', 'numeric', 'min:0'],
             'is_active'   => ['sometimes', 'boolean'],
         ];
     }

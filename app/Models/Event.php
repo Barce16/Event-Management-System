@@ -8,7 +8,7 @@ class Event extends Model
 {
     protected $fillable = [
         'customer_id',
-
+        'package_id',
         'name',
         'event_date',
         'venue',
@@ -33,5 +33,10 @@ class Event extends Model
     public function package()
     {
         return $this->belongsTo(Package::class);
+    }
+    public function vendors()
+    {
+        return $this->belongsToMany(Vendor::class)
+            ->withTimestamps();
     }
 }

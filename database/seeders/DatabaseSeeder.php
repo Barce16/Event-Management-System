@@ -36,23 +36,22 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // -- VENDORS SEEDER
-
         $rows = [
-            ['name' => 'Premium Catering', 'category' => 'Catering'],
-            ['name' => 'Everlight Sounds & Lights', 'category' => 'Lights & Sounds'],
-            ['name' => 'SnapShot Photo & Video', 'category' => 'Photo/Video'],
-            ['name' => 'Blossom Florals', 'category' => 'Florist'],
+            ['name' => 'Premium Catering',        'category' => 'Catering',     'price' => 50000],
+            ['name' => 'Everlight Sounds & Lights', 'category' => 'Lights & Sounds', 'price' => 15000],
+            ['name' => 'SnapShot Photo & Video',  'category' => 'Photo/Video',  'price' => 20000],
+            ['name' => 'Blossom Florals',         'category' => 'Florist',      'price' => 8000],
         ];
         foreach ($rows as $r) Vendor::firstOrCreate(['name' => $r['name']], $r);
 
         // -- PACKAGES SEEDER
         $basic = Package::firstOrCreate(
             ['name' => 'Basic Wedding'],
-            ['slug' => Str::slug('Basic Wedding'), 'base_price' => 50000, 'description' => 'Core vendors included']
+            ['slug' => Str::slug('Basic Wedding'), 'price' => 50000, 'description' => 'Core vendors included']
         );
         $premium = Package::firstOrCreate(
             ['name' => 'Premium Wedding'],
-            ['slug' => Str::slug('Premium Wedding'), 'base_price' => 120000, 'description' => 'Premium lineup']
+            ['slug' => Str::slug('Premium Wedding'), 'price' => 120000, 'description' => 'Premium lineup']
         );
 
         $catering = Vendor::where('category', 'Catering')->first();

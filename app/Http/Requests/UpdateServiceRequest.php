@@ -17,7 +17,7 @@ class UpdateServiceRequest extends FormRequest
         return [
             'name'        => ['required', 'string', 'max:255', Rule::unique('services', 'name')->ignore($this->service)],
             'description' => ['nullable', 'string'],
-            'base_price'  => ['required', 'numeric', 'min:0'],
+            'price'  => ['required', 'numeric', 'min:0'],
             'is_active'   => ['sometimes', 'boolean'],
         ];
     }

@@ -1,5 +1,6 @@
 <?php
 
+// app/Http/Controllers/Admin/PackageController.php
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -13,8 +14,16 @@ class PackageController extends Controller
     public function index(Request $request)
     {
         $q = $request->get('q');
-        $packages = Package::when($q, fn($s) => $s->where('name', 'like', "%$q%"))
-            ->orderBy('name')->paginate(12)->withQueryString();
+        $packages = Package::query()
+            ->when(
+                $q,
+                fn($s) =>
+                $s->where('name', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%")
+            )
+            ->orderBy('name')
+            ->paginate(12)
+            ->withQueryString();
 
         return view('admin.packages.index', compact('packages', 'q'));
     }
@@ -28,58 +37,68 @@ class PackageController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:120', 'unique:packages,name'],
+            'name'        => ['required', 'string', 'max:150', 'unique:packages,name'],
             'description' => ['nullable', 'string'],
-            'base_price'  => ['required', 'numeric', 'min:0'],
+            'price'       => ['required', 'numeric', 'min:0'],
             'is_active'   => ['sometimes', 'boolean'],
-            'vendor_ids'  => ['sometimes', 'array'],
-            'vendor_ids.*' => ['integer', 'exists:vendors,id'],
+            'vendors'     => ['sometimes', 'array'],
+            'vendors.*'   => ['integer', 'exists:vendors,id'],
         ]);
 
         $package = Package::create([
-            'name' => $data['name'],
-            'slug' => Str::slug($data['name']),
+            'name'        => $data['name'],
+            'slug'        => Str::slug($data['name']),
             'description' => $data['description'] ?? null,
-            'base_price' => $data['base_price'],
-            'is_active' => $request->boolean('is_active', true),
+            'price'       => $data['price'],
+            'is_active'   => $request->boolean('is_active', true),
         ]);
 
-        if (!empty($data['vendor_ids'])) {
-            $package->vendors()->sync($data['vendor_ids']);
+        // Attach selected vendors
+        if (!empty($data['vendors'])) {
+            $package->vendors()->attach($data['vendors']);
         }
 
-        return redirect()->route('admin.management.packages.index')->with('success', 'Package created.');
+        return redirect()->route('admin.management.packages.index')
+            ->with('success', 'Package created.');
+    }
+
+    public function show(Package $package)
+    {
+        $package->load('vendors');
+        return view('admin.packages.show', compact('package'));
     }
 
     public function edit(Package $package)
     {
         $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
-        $current = $package->vendors()->pluck('vendor_id')->all();
-        return view('admin.packages.edit', compact('package', 'vendors', 'current'));
+        $package->load('vendors');
+        return view('admin.packages.edit', compact('package', 'vendors'));
     }
 
     public function update(Request $request, Package $package)
     {
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:120', 'unique:packages,name,' . $package->id],
+            'name'        => ['required', 'string', 'max:150', 'unique:packages,name,' . $package->id],
             'description' => ['nullable', 'string'],
-            'base_price'  => ['required', 'numeric', 'min:0'],
+            'price'       => ['required', 'numeric', 'min:0'],
             'is_active'   => ['sometimes', 'boolean'],
-            'vendor_ids'  => ['sometimes', 'array'],
-            'vendor_ids.*' => ['integer', 'exists:vendors,id'],
+            'vendors'     => ['sometimes', 'array'],
+            'vendors.*'   => ['integer', 'exists:vendors,id'],
         ]);
 
         $package->update([
-            'name' => $data['name'],
-            'slug' => Str::slug($data['name']),
+            'name'        => $data['name'],
+            'slug'        => Str::slug($data['name']),
             'description' => $data['description'] ?? null,
-            'base_price' => $data['base_price'],
-            'is_active' => $request->boolean('is_active', $package->is_active),
+            'price'       => $data['price'],
+            'is_active'   => $request->boolean('is_active', $package->is_active),
         ]);
 
-        $package->vendors()->sync($data['vendor_ids'] ?? []);
+        // Sync vendors
+        $package->vendors()->sync($data['vendors'] ?? []);
 
-        return redirect()->route('admin.management.packages.index')->with('success', 'Package updated.');
+        return redirect()->route('admin.management.packages.index')
+            ->with('success', 'Package updated.');
     }
 
     public function destroy(Package $package)

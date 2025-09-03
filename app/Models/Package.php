@@ -10,12 +10,19 @@ class Package extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'slug', 'description', 'base_price', 'is_active'];
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'price',
+        'is_active',
+    ];
+
 
     public function vendors()
     {
         return $this->belongsToMany(Vendor::class)
-            ->withPivot(['included_price', 'notes'])
+            ->withPivot(['price_override'])
             ->withTimestamps();
     }
 

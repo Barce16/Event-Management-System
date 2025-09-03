@@ -25,9 +25,9 @@
             </div>
 
             <div>
-                <x-input-label for="contact_person" value="Contact Person" />
-                <x-text-input id="contact_person" name="contact_person" type="text" class="mt-1 block w-full"
-                    value="{{ old('contact_person', $vendor->contact_person) }}" />
+                <x-input-label for="price" value="Price (₱)" />
+                <x-text-input id="price" name="price" type="number" step="0.01" class="mt-1 block w-full"
+                    value="{{ old('price', $vendor->price) }}" required />
             </div>
 
             <div>
@@ -60,6 +60,7 @@
                 <x-input-label for="is_active" value="Active" />
             </div>
         </div>
+
 
         <div class="flex justify-end gap-2 pt-4 border-t">
             <a href="{{ route('admin.management.vendors.show', $vendor) }}" class="px-3 py-2 border rounded">Cancel</a>
