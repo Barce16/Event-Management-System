@@ -8,7 +8,7 @@ class Event extends Model
 {
     protected $fillable = [
         'customer_id',
-        'event_type_id',
+
         'name',
         'event_date',
         'venue',
@@ -29,12 +29,9 @@ class Event extends Model
     {
         return $this->belongsTo(Customer::class);
     }
-    public function eventType()
+
+    public function package()
     {
-        return $this->belongsTo(EventType::class);
-    }
-    public function services()
-    {
-        return $this->belongsToMany(\App\Models\Service::class)->withTimestamps();
+        return $this->belongsTo(Package::class);
     }
 }

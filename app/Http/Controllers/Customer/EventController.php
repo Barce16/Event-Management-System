@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\EventType;
-use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -27,12 +25,10 @@ class EventController extends Controller
     public function create(Request $request)
     {
         $customer = $request->user()->customer;
+        $packages = \App\Models\Package::where('is_active', true)->orderBy('name')->get();
         abort_if(!$customer, 403);
 
-        $eventTypes = EventType::where('is_active', true)->orderBy('name')->get();
-        $services   = Service::where('is_active', true)->orderBy('name')->get();
-
-        return view('customers.events.create', compact('eventTypes', 'services'));
+        return view('customers.events.create', compact('packages'));
     }
 
     public function store(Request $request)
@@ -42,7 +38,7 @@ class EventController extends Controller
 
         $data = $request->validate([
             'name'          => ['required', 'string', 'max:150'],
-            'event_type_id' => ['required', 'exists:event_types,id'],
+            'package_id'    => ['required', 'exists:packages,id'],
             'event_date'    => ['required', 'date', 'after:today'],
             'venue'         => ['nullable', 'string', 'max:255'],
             'theme'         => ['nullable', 'string', 'max:120'],
@@ -58,8 +54,8 @@ class EventController extends Controller
         DB::transaction(function () use ($customer, $data) {
             $event = Event::create([
                 'customer_id'   => $customer->id,
-                'event_type_id' => $data['event_type_id'],
                 'name'          => $data['name'],
+                'package_id'    => $data['package_id'],
                 'event_date'    => $data['event_date'],
                 'venue'         => $data['venue'] ?? null,
                 'theme'         => $data['theme'] ?? null,

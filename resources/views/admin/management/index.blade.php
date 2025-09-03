@@ -13,36 +13,14 @@
                             class="{{ request()->routeIs('admin.management.index') ? 'bg-gray-900 text-white' : 'hover:bg-gray-100' }} block px-3 py-2 rounded">
                             Overview
                         </a>
-                        <a href="{{ route('admin.management.event-types.index') }}"
-                            class="{{ request()->routeIs('admin.management.event-types.*') ? 'bg-gray-900 text-white' : 'hover:bg-gray-100' }} block px-3 py-2 rounded">
-                            Event Types
-                        </a>
-
-                        <a href="{{ route('admin.management.services.index') }}"
-                            class="{{ request()->routeIs('admin.management.services.*') ? 'bg-gray-900 text-white' : 'hover:bg-gray-100' }} block px-3 py-2 rounded">
-                            Services
+                        <a href="{{ route('admin.management.vendors.index') }}"
+                            class="block px-3 py-2 rounded {{ request()->routeIs('admin.management.vendors.*') ? 'bg-gray-100 font-medium' : '' }}">
+                            Vendors
                         </a>
                     </nav>
                 </aside>
 
-                {{-- Content area --}}
-                <section class="md:col-span-3 bg-white shadow-sm rounded-lg p-6">
 
-                    <div class="mt-6 grid sm:grid-cols-2 gap-4">
-                        <a href="{{ route('admin.management.event-types.index') }}"
-                            class="border rounded-lg p-4 hover:bg-gray-50">
-                            <div class="font-medium">Manage Event Types</div>
-                            <div class="text-sm text-gray-600">Add, edit, or archive common event categories.</div>
-                        </a>
-
-                        <a href="{{ route('admin.management.services.index') }}"
-                            class="border rounded-lg p-4 hover:bg-gray-50">
-                            <div class="font-medium">Manage Services</div>
-                            <div class="text-sm text-gray-600">Configure add-on services like catering, décor, etc.
-                            </div>
-                        </a>
-                    </div>
-                </section>
             </div>
         </div>
     </div>

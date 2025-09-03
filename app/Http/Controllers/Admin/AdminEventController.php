@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\EventType;
 use Illuminate\Http\Request;
 
 class AdminEventController extends Controller
@@ -13,7 +12,6 @@ class AdminEventController extends Controller
     {
         $q       = $request->string('q')->toString();
         $status  = $request->string('status')->toString();
-        $typeId  = $request->integer('event_type_id');
         $dateFrom = $request->date('from');
         $dateTo   = $request->date('to');
 
@@ -28,14 +26,13 @@ class AdminEventController extends Controller
                 });
             })
             ->when($status, fn($s) => $s->where('status', $status))
-            ->when($typeId, fn($s) => $s->where('event_type_id', $typeId))
+
             ->when($dateFrom, fn($s) => $s->whereDate('event_date', '>=', $dateFrom))
             ->when($dateTo, fn($s) => $s->whereDate('event_date', '<=', $dateTo))
             ->orderByDesc('event_date')
             ->paginate(15)
             ->withQueryString();
 
-        $types = EventType::orderBy('name')->get(['id', 'name']);
 
         return view('admin.events.index', compact('events', 'types', 'q', 'status', 'typeId', 'dateFrom', 'dateTo'));
     }

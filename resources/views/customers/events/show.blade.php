@@ -11,10 +11,6 @@
             <div class="bg-white shadow-sm rounded-lg p-6">
                 <dl class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                        <dt class="text-gray-600">Type</dt>
-                        <dd class="font-medium">{{ $event->eventType?->name }}</dd>
-                    </div>
-                    <div>
                         <dt class="text-gray-600">Date</dt>
                         <dd class="font-medium">{{ $event->event_date?->format('M d, Y') }}</dd>
                     </div>

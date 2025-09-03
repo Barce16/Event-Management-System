@@ -31,14 +31,16 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <x-input-label for="event_type_id" value="Event Type" />
-                        <select id="event_type_id" name="event_type_id" class="mt-1 w-full border rounded px-3 py-2"
-                            required>
-                            <option value="">Select type…</option>
-                            @foreach ($eventTypes as $t)
-                            <option value="{{ $t->id }}" @selected(old('event_type_id')==$t->id)>{{ $t->name }}</option>
+                        <x-input-label for="package_id" value="Package" />
+                        <select id="package_id" name="package_id" class="mt-1 w-full border rounded px-3 py-2" required>
+                            <option value="">Select package…</option>
+                            @foreach($packages as $p)
+                            <option value="{{ $p->id }}" @selected(old('package_id')==$p->id)">
+                                {{ $p->name }} (₱{{ number_format($p->base_price,2) }})
+                            </option>
                             @endforeach
                         </select>
+                        <x-input-error :messages="$errors->get('package_id')" class="mt-1" />
                     </div>
 
                     <div>

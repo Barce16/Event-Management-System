@@ -14,13 +14,6 @@
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Search (event, customer, venue)"
                     class="border rounded px-3 py-2 md:col-span-2">
 
-                <select name="event_type_id" class="border rounded px-3 py-2">
-                    <option value="">All Types</option>
-                    @foreach($types as $t)
-                    <option value="{{ $t->id }}" @selected((int)request('event_type_id')===$t->id)>{{ $t->name }}
-                    </option>
-                    @endforeach
-                </select>
 
                 <select name="status" class="border rounded px-3 py-2">
                     <option value="">All Status</option>

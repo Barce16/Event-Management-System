@@ -5,8 +5,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\Customer\EventController as CustomerEventController;
 use App\Http\Controllers\Admin\AdminEventController;
-use App\Http\Controllers\Admin\EventTypeController;
-use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\PackageController;
+use App\Http\Controllers\Admin\VendorController;
 use App\Http\Middleware\CheckAdmin;
 use App\Http\Middleware\EnsureCustomer;
 use Illuminate\Support\Facades\Route;
@@ -57,21 +57,10 @@ Route::middleware('auth')->group(function () {
 
                 Route::get('/', [AdminController::class, 'managementIndex'])->name('index');
 
-                // Event Types
-                Route::resource('event-types', EventTypeController::class)
-                    ->except(['show'])
-                    ->names('event-types');
-
-                Route::patch('event-types/{event_type}/toggle', [EventTypeController::class, 'toggle'])
-                    ->name('event-types.toggle');
-
-                // Services
-                Route::resource('services', ServiceController::class)
-                    ->except(['show'])
-                    ->names('services');
-
-                Route::patch('services/{service}/toggle', [ServiceController::class, 'toggle'])
-                    ->name('services.toggle');
+                Route::get('vendors', [VendorController::class, 'index'])->name('vendors.index');
+                Route::get('vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');
+                Route::get('vendors/{vendor}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
+                Route::patch('vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
             });
         });
 
