@@ -16,7 +16,6 @@
             </ul>
         </div>
         @endif
-
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <x-input-label for="name" value="Vendor Name" />
@@ -28,6 +27,18 @@
                 <x-input-label for="price" value="Price (₱)" />
                 <x-text-input id="price" name="price" type="number" step="0.01" class="mt-1 block w-full"
                     value="{{ old('price', $vendor->price) }}" required />
+            </div>
+
+            <div>
+                <x-input-label for="contact_person" value="Contact Person" />
+                <x-text-input id="contact_person" name="contact_person" type="text" class="mt-1 block w-full"
+                    value="{{ old('contact_person', $vendor->contact_person) }}" />
+            </div>
+
+            <div>
+                <x-input-label for="category" value="Category" />
+                <x-text-input id="category" name="category" type="text" class="mt-1 block w-full"
+                    value="{{ old('category', $vendor->category) }}" />
             </div>
 
             <div>
@@ -60,6 +71,7 @@
                 <x-input-label for="is_active" value="Active" />
             </div>
         </div>
+
 
 
         <div class="flex justify-end gap-2 pt-4 border-t">

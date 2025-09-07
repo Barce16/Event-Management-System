@@ -12,6 +12,7 @@ class Vendor extends Model
 
     protected $fillable = ['name', 'contact_person', 'price', 'category', 'email', 'phone', 'notes', 'is_active'];
 
+
     public function packages()
     {
         return $this->belongsToMany(Package::class)

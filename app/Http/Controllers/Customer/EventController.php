@@ -55,6 +55,8 @@ class EventController extends Controller
             'notes'        => ['nullable', 'string', 'max:2000'],
             'vendors'      => ['sometimes', 'array'],
             'vendors.*'    => ['integer', 'exists:vendors,id'],
+        ], [
+            'package_id.required' => 'Package is required.',
         ]);
 
         DB::transaction(function () use ($customer, $data) {
@@ -107,13 +109,27 @@ class EventController extends Controller
         abort_if(!$customer || $event->customer_id !== $customer->id, 403);
 
         $data = $request->validate([
-            'name'         => ['required', 'string', 'max:150'],
+            'name' => [
+                'required',
+                'string',
+                'max:150',
+                'regex:/^[A-Za-z0-9 .-]+$/',
+            ],
             'package_id'   => ['required', 'exists:packages,id'],
             'event_date'   => ['required', 'date', 'after:today'],
             'venue'        => ['nullable', 'string', 'max:255'],
             'theme'        => ['nullable', 'string', 'max:120'],
-            'budget'       => ['nullable', 'numeric', 'min:0'],
-            'guest_count'  => ['nullable', 'integer', 'min:1'],
+            'budget' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'regex:/^\d+(\.\d+)?$/',
+            ],
+            'guest_count' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
             'notes'        => ['nullable', 'string', 'max:2000'],
             'vendors'      => ['sometimes', 'array'],
             'vendors.*'    => ['integer', 'exists:vendors,id'],
@@ -134,6 +150,6 @@ class EventController extends Controller
             $event->vendors()->sync($data['vendors'] ?? []);
         });
 
-        return redirect()->route('customers.event.show', $event)->with('success', 'Event updated.');
+        return redirect()->route('customer.events.show', $event)->with('success', 'Event updated.');
     }
 }

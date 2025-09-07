@@ -1,12 +1,16 @@
 <x-admin.layouts.management>
     <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold">Vendors</h3>
+            <a href="{{ route('admin.management.vendors.create') }}" class="px-4 py-2 bg-gray-800 text-white rounded">
+                + New Vendor
+            </a>
+        </div>
+
+        <form method="GET" class="flex gap-2">
             <input type="text" name="q" value="{{ $q }}" placeholder="Search name, contact, email, phone"
-                class="border rounded px-3 py-2">
-            <div class="md:col-span-2 flex justify-end gap-2">
-                <a href="{{ route('admin.management.vendors.index') }}" class="px-3 py-2 border rounded">Reset</a>
-                <button class="px-4 py-2 bg-gray-800 text-white rounded">Search</button>
-            </div>
+                class="border rounded px-3 py-2 w-full">
+            <button class="border px-3 py-2 rounded">Search</button>
         </form>
     </div>
 
@@ -53,7 +57,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td class="py-6 text-center text-gray-500" colspan="5">No vendors found.</td>
+                    <td class="py-6 text-center text-gray-500" colspan="6">No vendors found.</td>
                 </tr>
                 @endforelse
             </tbody>

@@ -17,12 +17,16 @@ class AdminEventController extends Controller
         $dateTo    = $request->date('to');
         $packageId = $request->integer('package_id');
 
+        // --- Sanitize search query ($q) ---
+        $q = trim($q);
+        $q = preg_replace('/[<>]/', '', $q);
+        $q = mb_substr($q, 0, 120);
 
         $packages = Package::orderBy('name')->get(['id', 'name']);
 
         $events = Event::query()
             ->with(['customer:id,customer_name,email', 'package:id,name'])
-            ->when($q, function ($s) use ($q) {
+            ->when($q !== '', function ($s) use ($q) {
                 $s->where(function ($w) use ($q) {
                     $w->where('name', 'like', "%{$q}%")
                         ->orWhere('venue', 'like', "%{$q}%")
@@ -32,16 +36,14 @@ class AdminEventController extends Controller
                         });
                 });
             })
-
-            ->when($status, fn($s) => $s->where('status', $status))
-
+            ->when($status !== '', fn($s) => $s->where('status', $status))
             ->when($packageId, fn($s) => $s->where('package_id', $packageId))
-
             ->when($dateFrom, fn($s) => $s->whereDate('event_date', '>=', $dateFrom))
             ->when($dateTo,   fn($s) => $s->whereDate('event_date', '<=', $dateTo))
             ->orderByDesc('event_date')
             ->paginate(15)
             ->withQueryString();
+
 
         return view(
             'admin.events.index',

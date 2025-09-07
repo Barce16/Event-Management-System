@@ -56,10 +56,17 @@ Route::middleware('auth')->group(function () {
 
                 Route::get('/', [AdminController::class, 'managementIndex'])->name('index');
 
-                Route::get('vendors', [VendorController::class, 'index'])->name('vendors.index');
-                Route::get('vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');
-                Route::get('vendors/{vendor}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
-                Route::patch('vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
+                // Route::get('vendors', [VendorController::class, 'index'])->name('vendors.index');
+                // Route::get('vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');
+                // Route::get('vendors/{vendor}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
+                // Route::patch('vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
+
+                Route::resource('vendors', controller: VendorController::class)
+                    ->names('vendors');
+
+                Route::patch('vendors/{package}/toggle', [VendorController::class, 'toggle'])
+                    ->name('vendors.toggle');
+
 
                 Route::resource('packages', controller: PackageController::class)
                     ->names('packages');

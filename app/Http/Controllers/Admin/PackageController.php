@@ -37,9 +37,20 @@ class PackageController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:150', 'unique:packages,name'],
+            'name' => [
+                'required',
+                'string',
+                'max:150',
+                'unique:packages,name',
+                'regex:/^[A-Za-z0-9 \-]+$/',
+            ],
             'description' => ['nullable', 'string'],
-            'price'       => ['required', 'numeric', 'min:0'],
+            'price' => [
+                'required',
+                'numeric',
+                'min:0',
+                'regex:/^\d+(\.\d+)?$/',
+            ],
             'is_active'   => ['sometimes', 'boolean'],
             'vendors'     => ['sometimes', 'array'],
             'vendors.*'   => ['integer', 'exists:vendors,id'],
