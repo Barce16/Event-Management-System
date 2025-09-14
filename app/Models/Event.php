@@ -39,4 +39,11 @@ class Event extends Model
         return $this->belongsToMany(Vendor::class)
             ->withTimestamps();
     }
+
+    public function staffs()
+    {
+        return $this->belongsToMany(Staff::class, 'event_staff', 'event_id', 'staff_id')
+            ->withPivot('assignment_role')
+            ->withTimestamps();
+    }
 }

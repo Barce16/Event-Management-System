@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AssignEventStaffRequest;
 use App\Models\Event;
+use App\Models\Staff;
 use App\Models\Package;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminEventController extends Controller
 {
@@ -54,7 +57,17 @@ class AdminEventController extends Controller
     public function show(Event $event)
     {
         $event->load(['customer', 'package', 'vendors']);
-        return view('admin.events.show', compact('event'));
+        $assignedRoles = $event->staffs->pluck('pivot.assignment_role', 'id');
+
+        $allStaff = Staff::with('user')
+            ->where('is_active', true)
+            ->orderBy(
+                \App\Models\User::select('name')
+                    ->whereColumn('users.id', 'staffs.user_id')
+                    ->limit(1)
+            )
+            ->get();
+        return view('admin.events.show', compact('event', 'allStaff', 'assignedRoles'));
     }
 
     public function updateStatus(Request $request, Event $event)
@@ -66,6 +79,45 @@ class AdminEventController extends Controller
         $event->update(['status' => $data['status']]);
 
         return back()->with('success', 'Event status updated.');
+    }
+
+    public function assignStaff(AssignEventStaffRequest $request, Event $event)
+    {
+        $staffIds = collect($request->input('staff_ids', []))->unique()->values();
+
+        $blockingStatuses = ['requested', 'approved', 'scheduled'];
+
+        $conflicts = [];
+        foreach ($staffIds as $sid) {
+            $hasConflict = Event::whereDate('event_date', $event->event_date)
+                ->where('id', '!=', $event->id)
+                ->whereIn('status', $blockingStatuses)
+                ->whereHas('staffs', fn($q) => $q->where('staff_id', $sid))
+                ->exists();
+
+            if ($hasConflict) {
+                $staff = Staff::with('user')->find($sid);
+                $conflicts[] = $staff?->user?->name ?? "Staff #{$sid}";
+            }
+        }
+
+        if ($conflicts) {
+            return back()->withErrors([
+                'staff_ids' => 'Already booked on '
+                    . \Illuminate\Support\Carbon::parse($event->event_date)->format('Y-m-d')
+                    . ': ' . implode(', ', $conflicts),
+            ])->withInput();
+        }
+
+        $roles = collect($request->input('roles', []));
+        $sync  = [];
+        foreach ($staffIds as $sid) {
+            $sync[$sid] = ['assignment_role' => $roles->get($sid)];
+        }
+
+        DB::transaction(fn() => $event->staffs()->sync($sync));
+
+        return back()->with('success', 'Staff assignments updated.');
     }
 
     public function destroy(Event $event)

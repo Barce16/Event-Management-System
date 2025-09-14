@@ -17,21 +17,41 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-white shadow-sm rounded-lg p-4">
                     <div class="text-gray-600 text-sm">Total Events</div>
-                    <div class="text-2xl font-bold">12</div>
+                    <div class="text-2xl font-bold">{{ $totalEvents ?? '—' }}</div>
                 </div>
+
                 <div class="bg-white shadow-sm rounded-lg p-4">
                     <div class="text-gray-600 text-sm">Customers</div>
-                    <div class="text-2xl font-bold">8</div>
+                    <div class="text-2xl font-bold">{{ $totalCustomers ?? '—' }}</div>
                 </div>
+
                 <div class="bg-white shadow-sm rounded-lg p-4">
-                    <div class="text-gray-600 text-sm">Payments (Aug)</div>
-                    <div class="text-2xl font-bold">₱25,000</div>
+                    <div class="text-gray-600 text-sm">Payments (This Month)</div>
+                    <div class="text-2xl font-bold">
+                        @if(isset($paymentsThisMonth))
+                        ₱{{ number_format($paymentsThisMonth, 0) }}
+                        @else
+                        —
+                        @endif
+                    </div>
                 </div>
+
                 <div class="bg-white shadow-sm rounded-lg p-4">
                     <div class="text-gray-600 text-sm">Pending Tasks</div>
-                    <div class="text-2xl font-bold">4</div>
+                    <div class="text-2xl font-bold">{{ $pendingTasks ?? '—' }}</div>
                 </div>
             </div>
+
+            {{-- Optional: show customer-specific cards if those vars exist --}}
+            @if(isset($upcoming))
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white shadow-sm rounded-lg p-4">
+                    <div class="text-gray-600 text-sm">Upcoming My Events</div>
+                    <div class="text-2xl font-bold">{{ $upcoming }}</div>
+                </div>
+            </div>
+            @endif
+
 
             {{-- Quick Actions --}}
             <div class="bg-white shadow-sm rounded-lg p-6">
@@ -75,7 +95,7 @@
                             <tr class="border-t">
                                 <td class="py-2">Corporate Mixer</td>
                                 <td>2025-10-05</td>
-                                <td><span class="px-2 py-1 bg-blue-200 rounded">Planning</span></td>
+                                <td><span class="px-2 py-1 bg-blue-200 rounded">Approved</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -137,7 +157,7 @@
                             <tr class="border-t">
                                 <td class="py-2">Graduation Party</td>
                                 <td>2025-10-02</td>
-                                <td><span class="px-2 py-1 bg-blue-200 rounded">Planning</span></td>
+                                <td><span class="px-2 py-1 bg-blue-200 rounded">Approved</span></td>
                             </tr>
                         </tbody>
                     </table>

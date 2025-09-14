@@ -4,12 +4,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Event;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
+
     public function createUserForm()
     {
         return view('admin.create-user');
@@ -63,6 +66,9 @@ class AdminController extends Controller
 
     public function managementIndex()
     {
-        return view('admin.management.index');
+
+        $totalEvents    = Event::count();
+        $totalCustomers = Customer::count();
+        return view('admin.management.index', compact('totalEvents', 'totalCustomers'));
     }
 }

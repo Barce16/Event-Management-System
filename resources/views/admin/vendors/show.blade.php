@@ -48,5 +48,66 @@
         <div class="pt-4 border-t">
             <a href="{{ route('admin.management.vendors.index') }}" class="underline">Back to vendors</a>
         </div>
+
+        <div class="pt-6 border-t">
+            <h4 class="text-md font-semibold mb-3">Events</h4>
+
+            @if ($eventsUsingVendor->count() === 0)
+            <div class="text-sm text-gray-600">No Events</div>
+            @else
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-gray-600 border-b">
+                            <th class="py-2 pr-4">Event</th>
+                            <th class="py-2 pr-4">Date</th>
+                            <th class="py-2 pr-4">Customer</th>
+                            <th class="py-2 pr-4">Package</th>
+                            <th class="py-2 pr-4">Status</th>
+                            <th class="py-2 pr-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($eventsUsingVendor as $event)
+                        <tr class="border-b">
+                            <td class="py-2 pr-4 font-medium">{{ $event->name }}</td>
+                            <td class="py-2 pr-4">
+                                {{ \Illuminate\Support\Carbon::parse($event->event_date)->format('M d, Y') }}
+                            </td>
+                            <td class="py-2 pr-4">
+                                {{ optional($event->customer)->customer_name ?? '—' }}
+                            </td>
+                            <td class="py-2 pr-4">
+                                {{ optional($event->package)->name ?? '—' }}
+                            </td>
+                            <td class="py-2 pr-4">
+                                <span class="px-2 py-1 rounded text-xs
+                                    @class([
+                                        'bg-gray-100 text-gray-800' => $event->status === 'requested',
+                                        'bg-blue-100 text-blue-800' => $event->status === 'approved',
+                                        'bg-yellow-100 text-yellow-800' => $event->status === 'scheduled',
+                                        'bg-green-100 text-green-800' => $event->status === 'completed',
+                                        'bg-red-100 text-red-800' => $event->status === 'cancelled',
+                                    ])
+                                ">
+                                    {{ ucfirst($event->status) }}
+                                </span>
+                            </td>
+                            <td class="py-2 pr-4">
+                                <a href="{{ route('admin.events.show', $event) }}"
+                                    class="text-indigo-600 hover:underline">View</a>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4">
+                {{ $eventsUsingVendor->links() }}
+            </div>
+            @endif
+        </div>
+
     </div>
 </x-admin.layouts.management>

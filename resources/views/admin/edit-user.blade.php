@@ -8,8 +8,6 @@
     <x-input-label for="user_type" :value="__('User Type')" />
     <select id="user_type" name="user_type" required>
         <option value="admin" {{ $user->user_type == 'admin' ? 'selected' : '' }}>Admin</option>
-        <option value="staff" {{ $user->user_type == 'staff' ? 'selected' : '' }}>Staff</option>
-        <option value="customer" {{ $user->user_type == 'customer' ? 'selected' : '' }}>Customer</option>
     </select>
 
     <!-- Submit Button -->

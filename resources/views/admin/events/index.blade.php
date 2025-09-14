@@ -94,20 +94,6 @@
 
                             <td class="py-2 space-x-2">
                                 <a href="{{ route('admin.events.show', $e) }}" class="underline">View</a>
-
-                                {{-- If you re-enable quick status updates later, make sure the route exists:
-                                admin.events.status --}}
-                                {{--
-                                <form action="{{ route('admin.events.status', $e) }}" method="POST" class="inline">
-                                    @csrf @method('PATCH')
-                                    <select name="status" class="border rounded px-2 py-1 text-xs"
-                                        onchange="this.form.submit()">
-                                        @foreach(['requested','approved','scheduled','completed','cancelled'] as $s)
-                                        <option value="{{ $s }}" @selected($e->status === $s)>{{ ucfirst($s) }}</option>
-                                        @endforeach
-                                    </select>
-                                </form>
-                                --}}
                             </td>
                         </tr>
                         @empty

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Vendor;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -58,7 +59,17 @@ class VendorController extends Controller
     }
     public function show(Vendor $vendor)
     {
-        return view('admin.vendors.show', compact('vendor'));
+
+        $eventsUsingVendor = Event::with(['customer', 'package'])
+            ->whereHas('vendors', fn($q) => $q->whereKey($vendor->id))
+            ->orWhereHas('package.vendors', fn($q) => $q->whereKey($vendor->id))
+            ->orderByDesc('event_date')
+            ->distinct()
+            ->paginate(10);
+        return view('admin.vendors.show', [
+            'vendor' => $vendor,
+            'eventsUsingVendor' => $eventsUsingVendor,
+        ]);
     }
 
     public function edit(Vendor $vendor)

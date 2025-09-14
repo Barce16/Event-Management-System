@@ -8,6 +8,8 @@
 
     <div class="py-6">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-4">
+
+            {{-- Event details card --}}
             <div class="bg-white p-6 rounded-lg shadow-sm">
                 <div class="flex items-start justify-between gap-4">
                     <div>
@@ -20,7 +22,7 @@
                     {{-- Status --}}
                     <form action="{{ route('admin.events.status', $event) }}" method="POST">
                         @csrf @method('PATCH')
-                        <select name="status" class="border rounded px-3 py-2" onchange="this.form.submit()">
+                        <select name="status" class="border rounded min-w-36 px-3 py-2" onchange="this.form.submit()">
                             @foreach(['requested','approved','scheduled','completed','cancelled'] as $s)
                             <option value="{{ $s }}" @selected($event->status === $s)>{{ ucfirst($s) }}</option>
                             @endforeach
@@ -85,15 +87,12 @@
                             </thead>
                             <tbody>
                                 @foreach($vendors as $v)
-                                @php
-                                $price = $v->pivot->price ?? $v->price ?? 0;
-                                @endphp
+                                @php $price = $v->pivot->price ?? $v->price ?? 0; @endphp
                                 <tr class="border-t">
                                     <td class="py-2 px-3 font-medium">{{ $v->name }}</td>
                                     <td class="py-2 px-3">{{ $v->category ?? '—' }}</td>
                                     <td class="py-2 px-3 text-gray-600">
-                                        {{ $v->contact_person ?: '—' }}
-                                        @if($v->phone) · {{ $v->phone }} @endif
+                                        {{ $v->contact_person ?: '—' }} @if($v->phone) · {{ $v->phone }} @endif
                                     </td>
                                     <td class="py-2 px-3 text-right">₱{{ number_format($price, 2) }}</td>
                                 </tr>
@@ -116,6 +115,85 @@
                     <div class="whitespace-pre-wrap">{{ $event->notes ?: '—' }}</div>
                 </div>
             </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h4 class="text-md font-semibold">Staffs</h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="text-left text-gray-600 border-b">
+                                <th class="py-2 pr-4">Staff</th>
+                                <th class="py-2 pr-4">Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($event->staffs as $s)
+                            <tr class="border-b">
+                                <td class="py-2 pr-4">{{ $s->user->name }} ({{ $s->user->email }})</td>
+                                <td class="py-2 pr-4">{{ $assignedRoles[$s->id] ?? '—' }}</td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="2" class="py-4 text-gray-500">No staff assigned.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Assign Staff --}}
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h4 class="text-md font-semibold">Assign Staff</h4>
+
+                @if ($errors->has('staff_ids'))
+                <div class="mt-3 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+                    {{ $errors->first('staff_ids') }}
+                </div>
+                @endif
+
+                <form method="POST" action="{{ route('admin.events.assign-staff', $event) }}" class="space-y-3 mt-3">
+                    @csrf @method('PATCH')
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-sm text-gray-600">Select Staff</label>
+                            <select name="staff_ids[]" multiple class="w-full border rounded px-3 py-2" size="8">
+                                @foreach($allStaff as $s)
+                                <option value="{{ $s->id }}" @selected($event->staffs->contains('id', $s->id))>
+                                    {{ $s->user->name }} ({{ $s->user->email }}) — {{ $s->role_type ?? '—' }}
+                                </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Tip: Hold Ctrl/Cmd to select multiple.</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm text-gray-600">Per-staff Role (optional)</label>
+                            <div class="space-y-2 max-h-48 overflow-auto pr-2">
+                                @foreach($allStaff as $s)
+                                @php
+                                $current = $event->staffs->firstWhere('id', $s->id)?->pivot->assignment_role;
+                                @endphp
+                                <div class="flex items-center gap-2">
+                                    <div class="w-48 truncate">{{ $s->user->name }}</div>
+                                    <input type="text" name="roles[{{ $s->id }}]"
+                                        value="{{ old('roles.'.$s->id, $current) }}"
+                                        placeholder="Role for {{ $s->user->name }}"
+                                        class="border rounded px-2 py-1 flex-1 text-sm">
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button class="px-4 py-2 bg-gray-800 text-white rounded">Save Assignments</button>
+                    </div>
+                </form>
+
+            </div>
+
         </div>
     </div>
 </x-app-layout>

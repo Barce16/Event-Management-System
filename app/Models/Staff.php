@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Staff extends Model
+{
+    use SoftDeletes;
+
+    protected $table = 'staffs';
+
+    protected $fillable = [
+        'user_id',
+        'contact_number',
+        'role_type',
+        'address',
+        'gender',
+        'remarks',
+        'is_active',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function events()
+    {
+        return $this->belongsToMany(Event::class, 'event_staff', 'staff_id', 'event_id')
+            ->withPivot('assignment_role')
+            ->withTimestamps();
+    }
+}

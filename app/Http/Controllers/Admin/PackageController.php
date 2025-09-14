@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Package;
 use App\Models\Vendor;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -76,7 +77,12 @@ class PackageController extends Controller
     public function show(Package $package)
     {
         $package->load('vendors');
-        return view('admin.packages.show', compact('package'));
+        $eventsUsingPackage = Event::with(['customer'])
+            ->where('package_id', $package->id)
+            ->orderByDesc('event_date')
+            ->paginate(10);
+
+        return view('admin.packages.show', compact('package', 'eventsUsingPackage'));
     }
 
     public function edit(Package $package)

@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\StaffController;
 use App\Http\Controllers\Customer\EventController as CustomerEventController;
 use App\Http\Controllers\Admin\AdminEventController;
 use App\Http\Controllers\Admin\PackageController;
@@ -13,7 +15,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'));
 
-Route::get('/dashboard', fn() => view('dashboard'))
+
+Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
@@ -49,17 +52,15 @@ Route::middleware('auth')->group(function () {
 
             // Events
             Route::resource('events', AdminEventController::class)->only(['index', 'show', 'update', 'destroy']);
+
             Route::patch('events/{event}/status', [AdminEventController::class, 'updateStatus'])->name('events.status');
+            Route::patch('events/{event}/assign-staff', [AdminEventController::class, 'assignStaff'])
+                ->name('events.assign-staff');
 
             // ---- Management ----
             Route::prefix('management')->name('management.')->group(function () {
 
                 Route::get('/', [AdminController::class, 'managementIndex'])->name('index');
-
-                // Route::get('vendors', [VendorController::class, 'index'])->name('vendors.index');
-                // Route::get('vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');
-                // Route::get('vendors/{vendor}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
-                // Route::patch('vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
 
                 Route::resource('vendors', controller: VendorController::class)
                     ->names('vendors');
@@ -79,6 +80,7 @@ Route::middleware('auth')->group(function () {
 
 
     Route::resource('customers', CustomerController::class);
+    Route::resource('staff', StaffController::class);
 
     Route::get('/payments', fn() => view('payments.index'))->name('payments.index');
     Route::get('/reports/monthly', fn() => view('reports.monthly'))->name('reports.monthly');

@@ -30,8 +30,6 @@
                     <div>
                         <label class="block text-sm">User Type</label>
                         <select name="user_type" class="mt-1 w-full rounded border px-3 py-2" required>
-                            <option value="">— Select —</option>
-                            <option value="staff" {{ old('user_type')==='staff' ?'selected':'' }}>Staff</option>
                             <option value="admin" {{ old('user_type')==='admin' ?'selected':'' }}>Admin</option>
                         </select>
                     </div>
