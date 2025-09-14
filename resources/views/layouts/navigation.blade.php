@@ -53,9 +53,6 @@
 
                     {{-- STAFF (no Staff list, just Events + Schedule) --}}
                     @if ($user->user_type === 'staff')
-                    <x-nav-link :href="route('admin.events.index')" :active="request()->routeIs('admin.events.*')">
-                        {{ __('Events') }}
-                    </x-nav-link>
                     <x-nav-link :href="route('staff.schedule.index')" :active="request()->routeIs('staff.schedule.*')">
                         {{ __('Schedule') }}
                     </x-nav-link>

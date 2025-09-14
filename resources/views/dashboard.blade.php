@@ -57,11 +57,6 @@
             <div class="bg-white shadow-sm rounded-lg p-6">
                 <h3 class="font-semibold mb-3">Quick Actions</h3>
                 <div class="flex flex-wrap gap-3">
-                    {{-- <a href="{{ route('customer.events.create') }}"
-                        class="bg-sky-900 text-white px-4 py-2 rounded">New
-                        Event</a>
-                    <a href="{{ route('customers.create') }}" class="bg-emerald-700 text-white px-4 py-2 rounded">Add
-                        Customer</a> --}}
                     <a href="{{ route('payments.index') }}" class="bg-violet-700 text-white px-4 py-2 rounded">View
                         Payments</a>
                     <a href="{{ route('reports.monthly') }}" class="bg-gray-800 text-white px-4 py-2 rounded">Monthly
@@ -82,40 +77,49 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @forelse($recentEvents ?? [] as $e)
                             <tr class="border-t">
-                                <td class="py-2">Sample Wedding</td>
-                                <td>2025-09-10</td>
-                                <td><span class="px-2 py-1 bg-yellow-200 rounded">Scheduled</span></td>
+                                <td class="py-2">
+                                    <a href="{{ route('admin.events.show', $e) }}"
+                                        class="text-indigo-600 hover:underline">
+                                        {{ $e->name }}
+                                    </a>
+                                    <div class="text-xs text-gray-500">{{ $e->venue ?: '—' }}</div>
+                                </td>
+                                <td>{{ \Illuminate\Support\Carbon::parse($e->event_date)->format('Y-m-d') }}</td>
+                                <td>
+                                    @php
+                                    $color = match(strtolower($e->status)) {
+                                    'requested' => 'bg-yellow-100 text-yellow-800',
+                                    'approved' => 'bg-blue-100 text-blue-800',
+                                    'scheduled' => 'bg-indigo-100 text-indigo-800',
+                                    'completed' => 'bg-green-100 text-green-800',
+                                    'cancelled' => 'bg-red-100 text-red-800',
+                                    default => 'bg-gray-100 text-gray-800',
+                                    };
+                                    @endphp
+                                    <span class="px-2 py-1 rounded text-xs {{ $color }}">
+                                        {{ ucfirst($e->status) }}
+                                    </span>
+                                </td>
                             </tr>
-                            <tr class="border-t">
-                                <td class="py-2">Birthday Bash</td>
-                                <td>2025-09-15</td>
-                                <td><span class="px-2 py-1 bg-green-200 rounded">Completed</span></td>
+                            @empty
+                            <tr>
+                                <td colspan="3" class="py-4 text-center text-gray-500">No recent events.</td>
                             </tr>
-                            <tr class="border-t">
-                                <td class="py-2">Corporate Mixer</td>
-                                <td>2025-10-05</td>
-                                <td><span class="px-2 py-1 bg-blue-200 rounded">Approved</span></td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
+
             @else
             {{-- ================= CUSTOMER VIEW ================= --}}
             {{-- My Stats --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-white shadow-sm rounded-lg p-4">
                     <div class="text-gray-600 text-sm">My Upcoming Events</div>
-                    <div class="text-2xl font-bold">2</div>
-                </div>
-                <div class="bg-white shadow-sm rounded-lg p-4">
-                    <div class="text-gray-600 text-sm">Payments This Month</div>
-                    <div class="text-2xl font-bold">₱5,000</div>
-                </div>
-                <div class="bg-white shadow-sm rounded-lg p-4">
-                    <div class="text-gray-600 text-sm">Open Tasks / Requests</div>
-                    <div class="text-2xl font-bold">1</div>
+                    <div class="text-2xl font-bold">{{ $upcoming ?? 0 }}</div>
                 </div>
             </div>
 
@@ -149,20 +153,42 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @forelse($recentEvents ?? [] as $e)
                             <tr class="border-t">
-                                <td class="py-2">My Wedding</td>
-                                <td>2025-09-18</td>
-                                <td><span class="px-2 py-1 bg-yellow-200 rounded">Scheduled</span></td>
+                                <td class="py-2">
+                                    <a href="{{ route('customer.events.show', $e) }}"
+                                        class="text-indigo-600 hover:underline">
+                                        {{ $e->name }}
+                                    </a>
+                                </td>
+                                <td>{{ \Illuminate\Support\Carbon::parse($e->event_date)->format('Y-m-d') }}</td>
+                                <td>
+                                    @php
+                                    $color = match(strtolower($e->status)) {
+                                    'requested' => 'bg-yellow-100 text-yellow-800',
+                                    'approved' => 'bg-blue-100 text-blue-800',
+                                    'scheduled' => 'bg-indigo-100 text-indigo-800',
+                                    'completed' => 'bg-green-100 text-green-800',
+                                    'cancelled' => 'bg-red-100 text-red-800',
+                                    default => 'bg-gray-100 text-gray-800',
+                                    };
+                                    @endphp
+                                    <span class="px-2 py-1 rounded text-xs {{ $color }}">
+                                        {{ ucfirst($e->status) }}
+                                    </span>
+                                </td>
                             </tr>
-                            <tr class="border-t">
-                                <td class="py-2">Graduation Party</td>
-                                <td>2025-10-02</td>
-                                <td><span class="px-2 py-1 bg-blue-200 rounded">Approved</span></td>
+                            @empty
+                            <tr>
+                                <td colspan="3" class="py-4 text-center text-gray-500">No recent events.</td>
                             </tr>
+                            @endforelse
                         </tbody>
+
                     </table>
                 </div>
             </div>
+
             @endif
         </div>
     </div>

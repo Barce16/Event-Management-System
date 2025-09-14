@@ -9,8 +9,10 @@ use App\Http\Controllers\Customer\EventController as CustomerEventController;
 use App\Http\Controllers\Admin\AdminEventController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Staff\ScheduleController;
 use App\Http\Middleware\CheckAdmin;
 use App\Http\Middleware\EnsureCustomer;
+use App\Http\Middleware\EnsureStaff;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'));
@@ -35,7 +37,17 @@ Route::middleware('auth')->group(function () {
             Route::resource('events', CustomerEventController::class);
         });
 
+    // ========== STAFF AREA ==========
 
+    Route::middleware(['auth', EnsureStaff::class])
+        ->prefix('staff')
+        ->name('staff.')
+        ->group(function () {
+            Route::get('schedule', [ScheduleController::class, 'index'])
+                ->name('schedule.index');
+            Route::get('schedule/{event}', [ScheduleController::class, 'show'])
+                ->name('schedule.show');
+        });
 
     // ========== ADMIN AREA ==========
     Route::prefix('admin')

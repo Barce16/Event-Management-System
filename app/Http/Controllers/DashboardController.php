@@ -16,28 +16,42 @@ class DashboardController extends Controller
 
         if (in_array($user->user_type, ['admin', 'staff'])) {
             $metrics = [
-                'totalEvents'     => Event::count(),
-                'totalCustomers'  => Customer::count(),
+                'totalEvents'       => Event::count(),
+                'totalCustomers'    => Customer::count(),
                 'paymentsThisMonth' => null,
                 'pendingTasks'      => null,
+                'recentEvents'      => Event::latest('event_date')
+                    ->take(5)
+                    ->get(['id', 'name', 'event_date', 'status', 'venue']),
             ];
 
             return view('dashboard', $metrics);
         }
+
 
         if ($user->user_type === 'customer') {
-            $customerId = optional($user->customer)->id;
+            $customer = $user->customer;
 
-            $metrics = [
-                'totalEvents' => Event::where('customer_id', $customerId)->count(),
-                'upcoming'    => Event::where('customer_id', $customerId)
-                    ->whereDate('event_date', '>=', Carbon::today())
-                    ->count(),
-            ];
+            if (!$customer) {
+                return view('dashboard', [
+                    'totalEvents'  => 0,
+                    'upcoming'     => 0,
+                    'recentEvents' => collect(),
+                ]);
+            }
 
-            return view('dashboard', $metrics);
+            $recentEvents = Event::where('customer_id', $customer->id)
+                ->orderByDesc('event_date')
+                ->limit(5)
+                ->get(['id', 'name', 'event_date', 'status']);
+
+            return view('dashboard', [
+                'totalEvents'  => Event::where('customer_id', $customer->id)->count(),
+                'upcoming'     => Event::where('customer_id', $customer->id)
+                    ->whereDate('event_date', '>=', Carbon::today())->count(),
+                'recentEvents' => $recentEvents,
+            ]);
         }
-
 
         return view('dashboard');
     }
