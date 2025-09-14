@@ -25,7 +25,6 @@ class AuthenticatedSessionController extends Controller
 
     public function store(LoginRequest $request): RedirectResponse
     {
-        // Find user by email/username before trying to authenticate
         $user = \App\Models\User::where('email', $request->email)->first();
 
         if ($user && $user->status === 'blocked') {

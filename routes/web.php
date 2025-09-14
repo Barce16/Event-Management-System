@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Customer\EventController as CustomerEventController;
 use App\Http\Controllers\Admin\AdminEventController;
 use App\Http\Controllers\Admin\PackageController;
@@ -86,6 +87,34 @@ Route::middleware('auth')->group(function () {
 
                 Route::patch('packages/{package}/toggle', [PackageController::class, 'toggle'])
                     ->name('packages.toggle');
+            });
+
+            // ---- Report ----
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::get('/', [ReportsController::class, 'index'])->name('index');
+
+                // Events
+                Route::get('/events-by-month', [ReportsController::class, 'eventsByMonth'])->name('events.byMonth');
+                Route::get('/events-by-status', [ReportsController::class, 'eventsByStatus'])->name('events.byStatus');
+                Route::get('/upcoming', [ReportsController::class, 'upcoming'])->name('events.upcoming');
+
+                // Customers
+                Route::get('/customers-by-month', [ReportsController::class, 'customersByMonth'])->name('customers.byMonth');
+                Route::get('/top-customers', [ReportsController::class, 'topCustomers'])->name('customers.top');
+
+                // Vendors & Packages
+                Route::get('/top-vendors', [ReportsController::class, 'topVendors'])->name('vendors.top');
+                Route::get('/package-usage', [ReportsController::class, 'packageUsage'])->name('packages.usage');
+
+                // Staff
+                Route::get('/staff-workload', [ReportsController::class, 'staffWorkload'])->name('staff.workload');
+
+                // Payments when ready
+                // Route::get('/payments-by-month', [ReportsController::class, 'paymentsByMonth'])->name('payments.byMonth');
+                // Route::get('/customer-balances', [ReportsController::class, 'customerBalances'])->name('payments.balances');
+
+                // Optional CSV export shared endpoint (q=report-key)
+                Route::get('/export', [ReportsController::class, 'export'])->name('export');
             });
         });
 

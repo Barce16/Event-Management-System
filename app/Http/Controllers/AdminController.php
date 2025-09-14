@@ -24,7 +24,7 @@ class AdminController extends Controller
             'name'      => ['required', 'string', 'max:255'],
             'username'  => ['required', 'string', 'max:50', 'unique:users,username'],
             'email'     => ['required', 'email', 'max:255', 'unique:users,email'],
-            'user_type' => ['required', Rule::in(['admin', 'staff'])],
+            'user_type' => ['required', Rule::in(['admin'])],
             'password'  => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 

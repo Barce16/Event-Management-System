@@ -39,7 +39,7 @@
                     <x-nav-link :href="route('payments.index')" :active="request()->routeIs('payments.*')">
                         {{ __('Payments') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('reports.monthly')" :active="request()->routeIs('reports.*')">
+                    <x-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.*')">
                         {{ __('Reports') }}
                     </x-nav-link>
                     <x-nav-link :href="route('admin.users.list')" :active="request()->routeIs('admin.users.list')">
