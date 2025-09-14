@@ -122,7 +122,7 @@
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="text-left text-gray-600 border-b">
-                                <th class="py-2 pr-4">Staff</th>
+                                <th class="py-2 pr-4">Name - Email</th>
                                 <th class="py-2 pr-4">Role</th>
                             </tr>
                         </thead>
