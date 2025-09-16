@@ -7,6 +7,7 @@ use App\Http\Requests\StoreStaffRequest;
 use App\Http\Requests\UpdateStaffRequest;
 use App\Models\Staff;
 use App\Models\User;
+use App\Support\HandlesProfilePhotos;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -15,6 +16,9 @@ use Illuminate\Http\Request;
 
 class StaffController extends Controller
 {
+
+    use HandlesProfilePhotos;
+
     public function index()
     {
         $staffs = Staff::with('user')->latest()->paginate(15);
@@ -30,7 +34,10 @@ class StaffController extends Controller
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $request) {
+
+            $photoPath = $this->storeProfilePhoto($request->file('avatar'));
+
             $user = User::create([
                 'name'      => $validated['name'],
                 'username'  => $validated['username'],
@@ -38,6 +45,7 @@ class StaffController extends Controller
                 'user_type' => 'staff',
                 'status'    => 'active',
                 'password'  => Hash::make($validated['password']),
+                'profile_photo_path' => $photoPath,
             ]);
 
             Staff::create([
@@ -71,12 +79,16 @@ class StaffController extends Controller
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated, $staff) {
+        DB::transaction(function () use ($validated, $request, $staff) {
+
+            $newPath = $this->storeProfilePhoto($request->file('avatar'), $staff->user->profile_photo_path);
+
             $staff->user->update([
                 'name'     => $validated['name'],
                 'email'    => $validated['email'],
                 'username' => $validated['username'],
                 ...(!empty($validated['password']) ? ['password' => Hash::make($validated['password'])] : []),
+                'profile_photo_path' => $newPath,
             ]);
 
             // Then update Staff profile

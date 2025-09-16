@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'user_type',
         'status',
+        'profile_photo_path',
     ];
 
     /**
@@ -50,8 +51,6 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
-
     public function customer()
     {
         return $this->hasOne(Customer::class);
@@ -61,4 +60,15 @@ class User extends Authenticatable
     {
         return $this->hasOne(Staff::class);
     }
+
+    public function getProfilePhotoUrlAttribute(): string
+    {
+        if ($this->profile_photo_path) {
+            return asset('storage/' . $this->profile_photo_path);
+        }
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=E5E7EB&color=111827';
+    }
+
+    protected $appends = ['profile_photo_url'];
 }

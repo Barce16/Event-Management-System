@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Customer;
+use App\Support\HandlesProfilePhotos;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,8 +14,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules;
 
+
 class RegisteredUserController extends Controller
 {
+
+    use HandlesProfilePhotos;
     public function create()
     {
         return view('auth.register');
@@ -40,10 +44,13 @@ class RegisteredUserController extends Controller
             ],
             'address'   => ['nullable', 'string', 'max:255'],
             'password'  => ['required', 'confirmed', Rules\Password::defaults()],
+            'avatar'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        $user = DB::transaction(function () use ($data) {
-            // 1) Create auth account
+        $photoPath = $this->storeProfilePhoto($request->file('avatar'));
+
+        $user = DB::transaction(function () use ($data, $photoPath) {
+            // 1) Create user account
             $user = User::create([
                 'name'      => $data['name'],
                 'username'  => $data['username'],
@@ -51,6 +58,7 @@ class RegisteredUserController extends Controller
                 'user_type' => 'customer',
                 'status'    => 'active',
                 'password'  => Hash::make($data['password']),
+                'profile_photo_path' => $photoPath,
             ]);
 
             // 2) Create customer profile linked to that user
@@ -64,6 +72,7 @@ class RegisteredUserController extends Controller
 
             return $user;
         });
+
 
         event(new Registered($user));
         Auth::login($user);

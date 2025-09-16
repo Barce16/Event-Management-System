@@ -6,6 +6,8 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white rounded-lg shadow-sm p-6 space-y-6">
+                <img src="{{ $staff->user->profile_photo_url }}" class="h-16 w-16 rounded-full object-cover"
+                    alt="Avatar">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold">{{ $staff->user->name }}</h3>
                     <a href="{{ route('staff.edit', $staff) }}"

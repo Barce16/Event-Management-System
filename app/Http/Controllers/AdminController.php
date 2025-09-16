@@ -7,11 +7,14 @@ use App\Models\User;
 use App\Models\Event;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use App\Support\HandlesProfilePhotos;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
+
+    use HandlesProfilePhotos;
 
     public function createUserForm()
     {
@@ -26,7 +29,10 @@ class AdminController extends Controller
             'email'     => ['required', 'email', 'max:255', 'unique:users,email'],
             'user_type' => ['required', Rule::in(['admin'])],
             'password'  => ['required', 'string', 'min:8', 'confirmed'],
+            'avatar'    => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
+
+        $photoPath = $this->storeProfilePhoto($request->file('avatar'));
 
         $user = User::create([
             'name'      => $data['name'],
@@ -34,6 +40,7 @@ class AdminController extends Controller
             'email'     => $data['email'],
             'user_type' => $data['user_type'],
             'password'  => bcrypt($data['password']),
+            'profile_photo_path' => $photoPath,
         ]);
 
         return redirect()->route('admin.users.list')

@@ -17,10 +17,26 @@
             </div>
             @endif
 
-            <form method="POST" action="{{ route('staff.store') }}" class="bg-white p-6 rounded shadow space-y-4">
+            <form method="POST" enctype="multipart/form-data" action="{{ route('staff.store') }}"
+                class="bg-white p-6 rounded shadow space-y-4">
                 @csrf
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <div class="md:col-span-2">
+                        <x-input-label>Profile Photo</x-input-label>
+                        <input type="file" name="avatar" accept="image/*"
+                            class="block w-full border rounded px-3 py-2" />
+                        <x-input-error :messages="$errors->get('avatar')" />
+                        @isset($staff)
+                        <div class="mt-2">
+                            <img src="{{ $staff->user->profile_photo_url }}" class="h-14 w-14 rounded-full object-cover"
+                                alt="Avatar">
+                        </div>
+                        @endisset
+                    </div>
+
+
                     <div>
                         <x-input-label>Name</x-input-label>
                         <x-text-input name="name" value="{{ old('name') }}" class="w-full" autocomplete="name" />

@@ -6,8 +6,16 @@
     <div class="py-6">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm rounded-lg p-6">
-                <form method="POST" action="{{ route('admin.create-user.store') }}" class="space-y-4">
+                <form method="POST" enctype="multipart/form-data" action="{{ route('admin.create-user.store') }}"
+                    class="space-y-4">
                     @csrf
+
+                    <div>
+                        <x-input-label>Profile Photo</x-input-label>
+                        <input type="file" name="avatar" accept="image/*"
+                            class="block w-full border rounded px-3 py-2" />
+                        <x-input-error :messages="$errors->get('avatar')" />
+                    </div>
 
                     <div>
                         <label class="block text-sm">Full Name</label>

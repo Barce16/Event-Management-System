@@ -8,6 +8,8 @@
 
             <div class="bg-white shadow-sm rounded-lg p-6">
                 <h3 class="font-semibold mb-2">Info</h3>
+                <img src="{{ $customer->user->profile_photo_url }}" class="h-16 w-16 rounded-full object-cover mb-2"
+                    alt="Avatar">
                 <dl class="text-sm grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div><span class="font-medium">Email:</span> {{ $customer->email }}</div>
                     <div><span class="font-medium">Phone:</span> {{ $customer->phone ?? '—' }}</div>
