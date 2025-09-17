@@ -19,6 +19,8 @@ class Staff extends Model
         'gender',
         'remarks',
         'is_active',
+        'rate',
+        'rate_type',
     ];
 
     public function user()
@@ -29,7 +31,7 @@ class Staff extends Model
     public function events()
     {
         return $this->belongsToMany(Event::class, 'event_staff', 'staff_id', 'event_id')
-            ->withPivot('assignment_role')
+            ->withPivot(['assignment_role', 'pay_rate', 'pay_status'])
             ->withTimestamps();
     }
 }

@@ -36,6 +36,8 @@ class UpdateStaffRequest extends FormRequest
             'password'  => ['nullable', 'string', 'min:8', 'confirmed'],
             'contact_number' => ['nullable', 'string', 'max:20'],
             'role_type'      => ['nullable', 'string', 'max:100'],
+            'rate' => ['nullable', 'numeric', 'min:0'],
+            'rate_type' => ['nullable', 'in:per_event,per_day,per_hour'],
             'address'        => ['nullable', 'string', 'max:255'],
             'gender'         => ['nullable', 'in:male,female,other'],
             'remarks'        => ['nullable', 'string'],

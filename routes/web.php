@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Customer\EventController as CustomerEventController;
 use App\Http\Controllers\Admin\AdminEventController;
@@ -87,6 +88,13 @@ Route::middleware('auth')->group(function () {
 
                 Route::patch('packages/{package}/toggle', [PackageController::class, 'toggle'])
                     ->name('packages.toggle');
+            });
+
+            // ---- Payroll ----
+            Route::prefix('payroll')->name('payroll.')->group(function () {
+                Route::get('/', [PayrollController::class, 'index'])->name('index');
+                Route::get('/lines', [PayrollController::class, 'lines'])->name('lines');
+                Route::patch('/mark', [PayrollController::class, 'mark'])->name('mark');
             });
 
             // ---- Report ----

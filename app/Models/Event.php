@@ -43,7 +43,7 @@ class Event extends Model
     public function staffs()
     {
         return $this->belongsToMany(Staff::class, 'event_staff', 'event_id', 'staff_id')
-            ->withPivot('assignment_role')
+            ->withPivot(['assignment_role', 'pay_rate', 'pay_status'])
             ->withTimestamps();
     }
 }

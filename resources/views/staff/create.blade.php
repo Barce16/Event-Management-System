@@ -86,6 +86,15 @@
                     </div>
 
                     <div>
+                        <x-input-label>Default Rate (per event)</x-input-label>
+                        <x-text-input name="rate" type="number" step="0.01" min="0"
+                            value="{{ old('rate', $staff->rate ?? '') }}" class="w-full" />
+                        <x-input-error :messages="$errors->get('rate')" />
+                    </div>
+                    <input type="hidden" name="rate_type" value="per_event">
+
+
+                    <div>
                         <x-input-label>Gender</x-input-label>
                         <select name="gender" class="border rounded px-3 py-2 w-full">
                             <option value="">—</option>

@@ -52,6 +52,8 @@ class StaffController extends Controller
                 'user_id'        => $user->id,
                 'contact_number' => $validated['contact_number'],
                 'role_type'      => $validated['role_type'],
+                'rate' => $validated['rate'] ?? null,
+                'rate_type' => $validated['rate_type'] ?? 'per_event',
                 'address'        => $validated['address'],
                 'gender'         => $validated['gender'],
                 'remarks'        => $validated['remarks'],
@@ -95,6 +97,8 @@ class StaffController extends Controller
             $staff->update([
                 'contact_number' => $validated['contact_number'] ?? null,
                 'role_type'      => $validated['role_type'] ?? null,
+                'rate' => $validated['rate'] ?? null,
+                'rate_type' => $validated['rate_type'] ?? 'per_event',
                 'address'        => $validated['address'] ?? null,
                 'gender'         => $validated['gender'] ?? null,
                 'remarks'        => $validated['remarks'] ?? null,

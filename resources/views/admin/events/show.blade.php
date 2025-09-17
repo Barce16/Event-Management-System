@@ -124,6 +124,7 @@
                             <tr class="text-left text-gray-600 border-b">
                                 <th class="py-2 pr-4">Name - Email</th>
                                 <th class="py-2 pr-4">Role</th>
+                                <th class="py-2 pr-4">Rate</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -131,6 +132,12 @@
                             <tr class="border-b">
                                 <td class="py-2 pr-4">{{ $s->user->name }} ({{ $s->user->email }})</td>
                                 <td class="py-2 pr-4">{{ $assignedRoles[$s->id] ?? '—' }}</td>
+                                <td class="py-2 pr-4">
+                                    @php
+                                    $rate = $s->pivot->pay_rate ?? $s->rate ?? null;
+                                    @endphp
+                                    {{ is_null($rate) ? '—' : '₱' . number_format($rate, 2) }}
+                                </td>
                             </tr>
                             @empty
                             <tr>
@@ -168,22 +175,34 @@
                             <p class="text-xs text-gray-500 mt-1">Tip: Hold Ctrl/Cmd to select multiple.</p>
                         </div>
 
-                        <div class="space-y-2">
-                            <label class="text-sm text-gray-600">Per-staff Role (optional)</label>
-                            <div class="space-y-2 max-h-48 overflow-auto pr-2">
-                                @foreach($allStaff as $s)
-                                @php
-                                $current = $event->staffs->firstWhere('id', $s->id)?->pivot->assignment_role;
-                                @endphp
-                                <div class="flex items-center gap-2">
-                                    <div class="w-48 truncate">{{ $s->user->name }}</div>
-                                    <input type="text" name="roles[{{ $s->id }}]"
-                                        value="{{ old('roles.'.$s->id, $current) }}"
-                                        placeholder="Role for {{ $s->user->name }}"
-                                        class="border rounded px-2 py-1 flex-1 text-sm">
+                        <div class="space-y-2 max-h-64 overflow-auto pr-2">
+                            @foreach($allStaff as $s)
+                            @php
+                            $currentPivot = $event->staffs->firstWhere('id', $s->id)?->pivot;
+                            $currentRole = $currentPivot->assignment_role ?? null;
+                            $defaultRate = is_null($currentPivot?->pay_rate) ? ($s->rate ?? 0) :
+                            $currentPivot->pay_rate;
+                            @endphp
+                            <div class="grid grid-cols-1 md:grid-cols-6 items-center gap-2">
+                                <div class="md:col-span-2 truncate text-sm">{{ $s->user->name }} <span
+                                        class="text-gray-500 text-xs">({{ $s->role_type ?? '—' }})</span></div>
+
+                                <input type="text" name="roles[{{ $s->id }}]"
+                                    value="{{ old('roles.'.$s->id, $currentRole) }}" placeholder="Role"
+                                    class="border rounded px-2 py-1 text-sm md:col-span-2">
+
+                                <div class="flex items-center gap-2 md:col-span-2">
+                                    <span class="text-xs text-gray-600">Rate</span>
+                                    <input type="number" step="0.01" min="0" name="rates[{{ $s->id }}]"
+                                        value="{{ old('rates.'.$s->id, $defaultRate) }}"
+                                        class="border rounded px-2 py-1 text-sm w-32">
+                                    @if(!is_null($s->rate))
+                                    <span class="text-xs text-gray-500">(default: ₱{{ number_format($s->rate,2)
+                                        }})</span>
+                                    @endif
                                 </div>
-                                @endforeach
                             </div>
+                            @endforeach
                         </div>
                     </div>
 

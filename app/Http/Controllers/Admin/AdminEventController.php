@@ -81,44 +81,52 @@ class AdminEventController extends Controller
         return back()->with('success', 'Event status updated.');
     }
 
-    public function assignStaff(AssignEventStaffRequest $request, Event $event)
+    public function assignStaff(Request $request, Event $event)
     {
-        $staffIds = collect($request->input('staff_ids', []))->unique()->values();
+        $validated = $request->validate([
+            'staff_ids'     => ['array'],
+            'staff_ids.*'   => ['integer', 'exists:staffs,id'],
+            'roles'         => ['array'],
+            'rates'         => ['array'],
+        ]);
 
-        $blockingStatuses = ['requested', 'approved', 'scheduled'];
+        $staffIds = collect($validated['staff_ids'] ?? []);
 
-        $conflicts = [];
+        $syncData = [];
         foreach ($staffIds as $sid) {
-            $hasConflict = Event::whereDate('event_date', $event->event_date)
-                ->where('id', '!=', $event->id)
-                ->whereIn('status', $blockingStatuses)
+            $role = $validated['roles'][$sid] ?? null;
+            $rate = $validated['rates'][$sid] ?? null;
+
+            $existsConflict = Event::whereDate('event_date', $event->event_date)
                 ->whereHas('staffs', fn($q) => $q->where('staff_id', $sid))
+                ->where('events.id', '!=', $event->id)
                 ->exists();
 
-            if ($hasConflict) {
-                $staff = Staff::with('user')->find($sid);
-                $conflicts[] = $staff?->user?->name ?? "Staff #{$sid}";
+            if ($existsConflict) {
+                return back()->withErrors([
+                    'staff_ids' => "Selected staff has another event on {$event->event_date}.",
+                ])->withInput();
             }
+
+            if ($rate === null) {
+                $defaultRate = Staff::find($sid)?->rate;
+                $rate = $defaultRate ?? 0;
+            }
+
+            $syncData[$sid] = [
+                'assignment_role' => $role,
+                'pay_rate'        => is_numeric($rate) ? (float)$rate : 0,
+                'pay_status'      => $event->staffs->contains('id', $sid)
+                    ? ($event->staffs->firstWhere('id', $sid)->pivot->pay_status ?? 'pending')
+                    : 'pending',
+            ];
         }
 
-        if ($conflicts) {
-            return back()->withErrors([
-                'staff_ids' => 'Already booked on '
-                    . \Illuminate\Support\Carbon::parse($event->event_date)->format('Y-m-d')
-                    . ': ' . implode(', ', $conflicts),
-            ])->withInput();
-        }
+        $event->staffs()->sync($syncData);
 
-        $roles = collect($request->input('roles', []));
-        $sync  = [];
-        foreach ($staffIds as $sid) {
-            $sync[$sid] = ['assignment_role' => $roles->get($sid)];
-        }
-
-        DB::transaction(fn() => $event->staffs()->sync($sync));
-
-        return back()->with('success', 'Staff assignments updated.');
+        return back()->with('success', 'Staff assignments updated (rates saved).');
     }
+
 
     public function destroy(Event $event)
     {
