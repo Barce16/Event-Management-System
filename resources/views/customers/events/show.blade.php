@@ -33,15 +33,52 @@
                         <div class="text-gray-600 text-sm">Theme</div>
                         <div class="font-medium">{{ $event->theme ?: '—' }}</div>
                     </div>
-                    <div>
-                        <div class="text-gray-600 text-sm">Guests</div>
-                        <div class="font-medium">{{ $event->guest_count ?: '—' }}</div>
-                    </div>
                     <div class="md:col-span-2">
                         <div class="text-gray-600 text-sm">Notes</div>
                         <div class="font-medium whitespace-pre-line">{{ $event->notes ?: '—' }}</div>
                     </div>
                 </div>
+
+                {{-- Guests --}}
+                <div class="mt-6">
+                    <div class="text-gray-500 text-sm mb-1">Guests</div>
+
+                    @php
+                    $guests = $event->guests ?? collect();
+                    $headcount = $guests->sum('party_size');
+                    @endphp
+
+                    @if($guests->isEmpty())
+                    <div class="text-gray-500">No guests added.</div>
+                    @else
+                    <div class="mb-2 text-sm text-gray-600">
+                        Total invitees: {{ $guests->count() }} • Estimated headcount: {{ $headcount }}
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm border rounded">
+                            <thead class="bg-gray-50 text-gray-600">
+                                <tr>
+                                    <th class="text-left py-2 px-3">Name</th>
+                                    <th class="text-left py-2 px-3">Contact</th>
+                                    <th class="text-left py-2 px-3">Email</th>
+                                    <th class="text-left py-2 px-3">Party Size</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($guests as $g)
+                                <tr class="border-t">
+                                    <td class="py-2 px-3 font-medium">{{ $g->name }}</td>
+                                    <td class="py-2 px-3">{{ $g->contact_number ?: '—' }}</td>
+                                    <td class="py-2 px-3">{{ $g->email ?: '—' }}</td>
+                                    <td class="py-2 px-3">{{ $g->party_size }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @endif
+                </div>
+
 
                 <div class="mt-6">
                     <h3 class="font-semibold mb-2">Selected Vendors</h3>

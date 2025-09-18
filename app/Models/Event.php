@@ -46,4 +46,9 @@ class Event extends Model
             ->withPivot(['assignment_role', 'pay_rate', 'pay_status'])
             ->withTimestamps();
     }
+
+    public function guests()
+    {
+        return $this->hasMany(Guest::class);
+    }
 }

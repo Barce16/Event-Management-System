@@ -50,12 +50,12 @@
                             <x-input-error :messages="$errors->get('theme')" class="mt-2" />
                         </div>
 
-                        <div>
+                        {{-- <div>
                             <x-input-label for="guest_count" value="Guest Count" />
                             <x-text-input id="guest_count" name="guest_count" type="number" min="1"
                                 class="mt-1 block w-full" value="{{ old('guest_count') }}" />
                             <x-input-error :messages="$errors->get('guest_count')" class="mt-2" />
-                        </div>
+                        </div> --}}
 
                         <div class="md:col-span-2">
                             <x-input-label for="budget" value="Budget (optional)" />
@@ -69,6 +69,84 @@
                             <textarea id="notes" name="notes" rows="3"
                                 class="mt-1 w-full border rounded px-3 py-2">{{ old('notes') }}</textarea>
                             <x-input-error :messages="$errors->get('notes')" class="mt-2" />
+                        </div>
+
+                        {{-- Guests section --}}
+                        <div class="md:col-span-2">
+                            <div x-data="{
+                                items: @js(old('guests', [])),
+                                draft: {name:'', email:'', contact_number:'', party_size:1},
+                                add() {
+                                    if(this.draft.name || this.draft.email || this.draft.contact_number){
+                                        this.items.push({...this.draft, saved: true});
+                                        this.draft = {name:'', email:'', contact_number:'', party_size:1};
+                                    }
+                                },
+                                remove(i){ this.items.splice(i,1); }
+                            }" class="bg-white rounded-lg shadow-sm space-y-3">
+
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-semibold">Guests</h4>
+                                    <button type="button" @click="add()" class="px-3 py-2 border rounded text-sm">Add
+                                        Guest</button>
+                                </div>
+
+                                {{-- Draft row (always white) --}}
+                                <div class="grid grid-cols-1 md:grid-cols-5 gap-2 border p-4 mt-3 rounded-lg bg-white">
+                                    <div class="md:col-span-3">
+                                        <x-input-label>Name</x-input-label>
+                                        <input type="text" class="w-full border rounded px-3 py-2" name="draft_name"
+                                            x-model="draft.name" />
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <x-input-label>Email</x-input-label>
+                                        <input type="email" class="w-full border rounded px-3 py-2" name="draft_email"
+                                            x-model="draft.email" />
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <x-input-label>Contact</x-input-label>
+                                        <input type="text" class="w-full border rounded px-3 py-2" name="draft_contact"
+                                            x-model="draft.contact_number" />
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <x-input-label>Party Size</x-input-label>
+                                        <input type="number" min="1" class="w-full border rounded px-3 py-2"
+                                            name="draft_party" x-model.number="draft.party_size" />
+                                    </div>
+                                </div>
+
+                                {{-- Saved guests (tinted green) --}}
+                                <template x-for="(g, i) in items" :key="i">
+                                    <div
+                                        class="grid grid-cols-1 md:grid-cols-5 gap-2 border p-4 mt-3 rounded-lg bg-slate-800/20">
+                                        <div class="md:col-span-3">
+                                            <x-input-label>Name</x-input-label>
+                                            <input type="text" class="w-full border rounded px-3 py-2"
+                                                :name="`guests[${i}][name]`" x-model="g.name" />
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <x-input-label>Email</x-input-label>
+                                            <input type="email" class="w-full border rounded px-3 py-2"
+                                                :name="`guests[${i}][email]`" x-model="g.email" />
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <x-input-label>Contact</x-input-label>
+                                            <input type="text" class="w-full border rounded px-3 py-2"
+                                                :name="`guests[${i}][contact_number]`" x-model="g.contact_number" />
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <x-input-label>Party Size</x-input-label>
+                                            <input type="number" min="1" class="w-full border rounded px-3 py-2"
+                                                :name="`guests[${i}][party_size]`" x-model.number="g.party_size" />
+                                        </div>
+                                        <div class="md:col-span-1 text-right flex items-end justify-center">
+                                            <button type="button" @click="remove(i)"
+                                                class="px-4 py-2 bg-red-700 text-white rounded">Remove</button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
                         </div>
                     </div>
 

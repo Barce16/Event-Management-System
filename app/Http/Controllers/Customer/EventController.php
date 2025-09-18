@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\Guest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -39,44 +40,71 @@ class EventController extends Controller
 
 
 
+
     public function store(Request $request)
     {
-        $customer = $request->user()->customer;
-        abort_if(!$customer, 403);
+        $validated = $request->validate([
+            'name'        => ['required', 'string', 'max:255'],
+            'event_date'  => ['required', 'date'],
+            'package_id'  => ['nullable', 'exists:packages,id'],
+            'venue'       => ['nullable', 'string', 'max:255'],
+            'theme'       => ['nullable', 'string', 'max:255'],
+            'budget'      => ['nullable', 'numeric', 'min:0'],
+            'notes'       => ['nullable', 'string'],
 
-        $data = $request->validate([
-            'name'         => ['required', 'string', 'max:150'],
-            'package_id'  => ['required', 'exists:packages,id'],
-            'event_date'  => ['required', 'date', 'after:today'],
-            'venue'        => ['nullable', 'string', 'max:255'],
-            'theme'        => ['nullable', 'string', 'max:120'],
-            'budget'       => ['nullable', 'numeric', 'min:0'],
-            'guest_count'  => ['nullable', 'integer', 'min:1'],
-            'notes'        => ['nullable', 'string', 'max:2000'],
-            'vendors'      => ['sometimes', 'array'],
-            'vendors.*'    => ['integer', 'exists:vendors,id'],
-        ], [
-            'package_id.required' => 'Package is required.',
+            'vendors'     => ['nullable', 'array'],
+            'vendors.*'   => ['integer', 'exists:vendors,id'],
+
+            'guests'                  => ['nullable', 'array'],
+            'guests.*.name'           => ['required', 'string', 'max:255'],
+            'guests.*.email'          => ['nullable', 'email', 'max:255'],
+            'guests.*.contact_number' => ['nullable', 'string', 'max:50'],
+            'guests.*.party_size'     => ['nullable', 'integer', 'min:1'],
         ]);
 
-        DB::transaction(function () use ($customer, $data) {
+        $user = $request->user();
+        $customerId = optional($user->customer)->id;
+
+        DB::transaction(function () use ($validated, $customerId, &$event) {
+            // 1) Create the event
             $event = Event::create([
-                'customer_id'  => $customer->id,
-                'package_id'   => $data['package_id'],
-                'name'         => $data['name'],
-                'event_date'   => $data['event_date'],
-                'venue'        => $data['venue'] ?? null,
-                'theme'        => $data['theme'] ?? null,
-                'budget'       => $data['budget'] ?? null,
-                'guest_count'  => $data['guest_count'] ?? null,
-                'status'       => 'requested',
-                'notes'        => $data['notes'] ?? null,
+                'name'        => $validated['name'],
+                'event_date'  => $validated['event_date'],
+                'package_id'  => $validated['package_id'] ?? null,
+                'customer_id' => $customerId,
+                'venue'       => $validated['venue'] ?? null,
+                'theme'       => $validated['theme'] ?? null,
+                'budget'      => $validated['budget'] ?? null,
+                'notes'       => $validated['notes'] ?? null,
+                'status'      => 'requested', // or whatever your default is
             ]);
 
-            $event->vendors()->sync($data['vendors'] ?? []);
+            // 2) Attach vendors if any
+            if (!empty($validated['vendors'])) {
+                // if you have price overrides you’d handle pivot fields here
+                $event->vendors()->sync($validated['vendors']);
+            }
+
+            // 3) Insert guests (bulk)
+            if (!empty($validated['guests'])) {
+                $rows = collect($validated['guests'])->map(function ($g) use ($event) {
+                    return [
+                        'event_id'       => $event->id,
+                        'name'           => $g['name'],
+                        'email'          => $g['email'] ?? null,
+                        'contact_number' => $g['contact_number'] ?? null,
+                        'party_size'     => (int)($g['party_size'] ?? 1),
+                        'created_at'     => now(),
+                        'updated_at'     => now(),
+                    ];
+                })->all();
+
+                Guest::insert($rows);
+            }
         });
 
-        return redirect()->route('customer.events.index')->with('success', 'Your event request was submitted.');
+        return redirect()->route('customer.events.index')
+            ->with('success', 'Event request submitted.');
     }
     public function show(Request $request, Event $event)
     {
