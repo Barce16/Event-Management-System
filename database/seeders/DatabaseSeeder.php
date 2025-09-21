@@ -2,64 +2,120 @@
 
 namespace Database\Seeders;
 
+use App\Models\Inclusion;
 use App\Models\User;
 use App\Models\Package;
 use App\Models\Vendor;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Helper to upsert a user by email OR username.
+        $upsertUser = function (array $attrs): User {
+            $email = $attrs['email'] ?? null;
+            $username = $attrs['username'] ?? null;
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'username' => 'testuser',
-            'email' => 'test@example.com',
+            $user = User::query()
+                ->when($email, fn($q) => $q->orWhere('email', $email))
+                ->when($username, fn($q) => $q->orWhere('username', $username))
+                ->first();
+
+            // Ensure password exists (especially for factory-like seeds)
+            if (empty($attrs['password'])) {
+                $attrs['password'] = Hash::make('password'); // default seed password
+            }
+
+            if ($user) {
+                // Update existing without changing unique keys unintentionally
+                $user->fill([
+                    'name'      => $attrs['name']      ?? $user->name,
+                    'username'  => $username           ?? $user->username,
+                    'email'     => $email              ?? $user->email,
+                    'user_type' => $attrs['user_type'] ?? $user->user_type,
+                ]);
+                // Only update password if you explicitly passed it in attrs
+                if (array_key_exists('password', $attrs)) {
+                    $user->password = $attrs['password'];
+                }
+                $user->save();
+                return $user;
+            }
+
+            // Create new
+            return User::create($attrs);
+        };
+
+        // ---- USERS ----
+        $upsertUser([
+            'name'      => 'Test User',
+            'username'  => 'testuser',
+            'email'     => 'test@example.com',
+            'user_type' => 'customer',
+            'password'  => Hash::make('password'),
         ]);
 
-        // -- ADMIN SEEDER
-
-        User::create([
-            'name' => 'Admin',
-            'username' => 'admin',
+        $upsertUser([
+            'name'      => 'Admin',
+            'username'  => 'admin',
+            'email'     => 'admin@example.com',
             'user_type' => 'admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
+            'password'  => Hash::make('password'),
         ]);
 
-        // -- VENDORS SEEDER
-        $rows = [
-            ['name' => 'Premium Catering',        'category' => 'Catering',     'price' => 50000],
-            ['name' => 'Everlight Sounds & Lights', 'category' => 'Lights & Sounds', 'price' => 15000],
-            ['name' => 'SnapShot Photo & Video',  'category' => 'Photo/Video',  'price' => 20000],
-            ['name' => 'Blossom Florals',         'category' => 'Florist',      'price' => 8000],
+        // ---- VENDORS ----
+        $vendors = [
+            ['name' => 'Premium Catering',           'category' => 'Catering',        'price' => 50000],
+            ['name' => 'Everlight Sounds & Lights',  'category' => 'Lights & Sounds', 'price' => 15000],
+            ['name' => 'SnapShot Photo & Video',     'category' => 'Photo/Video',     'price' => 20000],
+            ['name' => 'Blossom Florals',            'category' => 'Florist',         'price' => 8000],
         ];
-        foreach ($rows as $r) Vendor::firstOrCreate(['name' => $r['name']], $r);
+        foreach ($vendors as $v) {
+            Vendor::firstOrCreate(['name' => $v['name']], $v);
+        }
 
-        // -- PACKAGES SEEDER
+        // Fetch vendor IDs safely
+        $catering = Vendor::where('category', 'Catering')->value('id');
+        $lights   = Vendor::where('category', 'Lights & Sounds')->value('id');
+        $photo    = Vendor::where('category', 'Photo/Video')->value('id');
+        $florist  = Vendor::where('category', 'Florist')->value('id');
+
+        // ---- PACKAGES ----
         $basic = Package::firstOrCreate(
             ['name' => 'Basic Wedding'],
-            ['slug' => Str::slug('Basic Wedding'), 'price' => 50000, 'description' => 'Core vendors included']
+            [
+                // adjust to your column names, e.g. base_price vs price
+                'slug'        => Str::slug('Basic Wedding'),
+                'base_price'  => 50000,
+                'description' => 'Core vendors included',
+                'is_active'   => true,
+            ]
         );
+
         $premium = Package::firstOrCreate(
             ['name' => 'Premium Wedding'],
-            ['slug' => Str::slug('Premium Wedding'), 'price' => 120000, 'description' => 'Premium lineup']
+            [
+                'slug'        => Str::slug('Premium Wedding'),
+                'base_price'  => 120000,
+                'description' => 'Premium lineup',
+                'is_active'   => true,
+            ]
         );
 
-        $catering = Vendor::where('category', 'Catering')->first();
-        $lights   = Vendor::where('category', 'Lights & Sounds')->first();
-        $photo    = Vendor::where('category', 'Photo/Video')->first();
-        $florist  = Vendor::where('category', 'Florist')->first();
+        // Sync vendors to packages
+        $basic->vendors()->sync(array_values(array_filter([$catering, $photo, $florist])));
+        $basic->update([
+            'event_styling' => ['Stage setup', '2-3 candles', 'Aisle decor'],
+            'coordination'  => 'Day-of coordination, supplier follow-ups',
+        ]);
+        $premium->vendors()->sync(array_values(array_filter([$catering, $photo, $florist, $lights])));
 
-        $basic->vendors()->sync([$catering?->id, $photo?->id, $florist?->id]);
-        $premium->vendors()->sync([$catering?->id, $photo?->id, $florist?->id, $lights?->id]);
+        // ---- INCLUSIONS ----
+        foreach (['Invitations', 'Giveaways', 'Photos', 'Videos', 'Cake'] as $name) {
+            Inclusion::firstOrCreate(['name' => $name], ['is_active' => true]);
+        }
     }
 }

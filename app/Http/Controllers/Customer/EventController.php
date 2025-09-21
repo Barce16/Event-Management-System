@@ -29,8 +29,10 @@ class EventController extends Controller
         $customer = $request->user()->customer;
         abort_if(!$customer, 403);
 
-        $packages = \App\Models\Package::with(['vendors' => fn($q) => $q->where('is_active', true)])
-            ->where('is_active', true)->orderBy('name')->get();
+        $packages = \App\Models\Package::with([
+            'vendors:id,name,category,price',
+            'inclusions'
+        ])->where('is_active', true)->orderBy('price')->get();
 
 
         $vendors = \App\Models\Vendor::where('is_active', true)->orderBy('name')->get();

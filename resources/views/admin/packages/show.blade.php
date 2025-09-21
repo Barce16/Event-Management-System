@@ -17,6 +17,58 @@
         </div>
 
         <div>
+            <div class="text-gray-600 text-sm mb-1">Inclusions</div>
+            @if($package->inclusions->isEmpty())
+            <div class="text-gray-500">No inclusions added.</div>
+            @else
+            <ul class="space-y-2">
+                @foreach($package->inclusions as $inc)
+                <li class="border rounded p-3">
+                    <div class="font-extrabold mb-2">
+                        {{ $inc->name }}
+                        @if($inc->category)
+                        <span class="text-xs">• {{ $inc->category }}</span>
+                        @endif
+                    </div>
+                    @if($inc->pivot->notes)
+                    <div class="text-sm text-gray-700 leading-tight">
+                        @foreach(preg_split('/\r\n|\r|\n/', $inc->pivot->notes) as $line)
+                        @if(trim($line) !== '')
+                        • {{ $line }}<br>
+                        @endif
+                        @endforeach
+                    </div>
+                    @else
+                    <div class="text-sm text-gray-500">No notes.</div>
+                    @endif
+                </li>
+                @endforeach
+            </ul>
+            @endif
+        </div>
+
+
+        {{-- Coordination --}}
+        <div class="mt-4">
+            <div class="text-gray-600 text-sm mb-1">Coordination</div>
+            <div class="whitespace-pre-line">{{ $package->coordination ?: '—' }}</div>
+        </div>
+
+        {{-- Event Styling --}}
+        <div>
+            <div class="text-gray-600 text-sm mb-1">Event Styling</div>
+            @if(empty($package->event_styling) || count($package->event_styling) === 0)
+            <div class="text-gray-500">No styling details.</div>
+            @else
+            <ul class="list-disc pl-5 space-y-1">
+                @foreach($package->event_styling as $item)
+                <li>{{ $item }}</li>
+                @endforeach
+            </ul>
+            @endif
+        </div>
+
+        <div>
             <div class="text-gray-600 text-sm mb-1">Status</div>
             @php $badge = $package->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'; @endphp
             <span class="px-2 py-1 rounded text-xs {{ $badge }}">

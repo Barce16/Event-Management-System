@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use App\Models\Event;
 use App\Models\Customer;
+use App\Models\Package;
 
 class DashboardController extends Controller
 {
@@ -40,6 +41,14 @@ class DashboardController extends Controller
                 ]);
             }
 
+            $packages = Package::with([
+                'vendors:id,name,category,price',
+                'inclusions'
+            ])
+                ->where('is_active', true)
+                ->orderBy('price')
+                ->get();
+
             $recentEvents = Event::where('customer_id', $customer->id)
                 ->orderByDesc('event_date')
                 ->limit(5)
@@ -50,6 +59,7 @@ class DashboardController extends Controller
                 'upcoming'     => Event::where('customer_id', $customer->id)
                     ->whereDate('event_date', '>=', Carbon::today())->count(),
                 'recentEvents' => $recentEvents,
+                'packages'    => $packages,
             ]);
         }
 

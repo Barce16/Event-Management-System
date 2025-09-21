@@ -35,6 +35,74 @@
                             </select>
                             <x-input-error :messages="$errors->get('package_id')" class="mt-2" />
                         </div>
+                        {{-- Package Details --}}
+                        <div class="md:col-span-2" x-show="selectedPackage" x-cloak>
+                            <div class="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <div class="text-lg font-semibold" x-text="pkg()?.name"></div>
+                                        <div class="text-gray-700 font-medium" x-show="pkg()?.price">
+                                            ₱<span x-text="formatPrice(pkg()?.price)"></span>
+                                        </div>
+                                    </div>
+                                    <span
+                                        class="px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-800">Selected</span>
+                                </div>
+
+                                <template x-if="pkg()?.description">
+                                    <p class="text-sm text-gray-600 mt-2" x-text="pkg().description"></p>
+                                </template>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+
+                                    {{-- Inclusions --}}
+                                    <div>
+                                        <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Inclusions</div>
+                                        <template x-if="(pkg()?.inclusions || []).length === 0">
+                                            <div class="text-sm text-gray-500">—</div>
+                                        </template>
+                                        <div class="flex flex-wrap gap-1" x-show="(pkg()?.inclusions || []).length">
+                                            <template x-for="inc in (pkg()?.inclusions || [])" :key="inc.id">
+                                                <span
+                                                    class="px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800"
+                                                    x-text="inc.name"></span>
+                                            </template>
+                                        </div>
+
+                                        {{-- Inclusion notes preview (first few lines combined) --}}
+                                        <div class="text-xs text-gray-600 mt-2" x-show="hasAnyIncNotes()">
+                                            <span class="font-medium">Notes:</span>
+                                            <ul class="list-disc pl-4">
+                                                <template x-for="line in inclusionNotesPreview()" :key="line">
+                                                    <li x-text="line"></li>
+                                                </template>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Event Styling --}}
+                                <div class="mt-3">
+                                    <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Event Styling</div>
+                                    <template x-if="!(pkg()?.event_styling && pkg().event_styling.length)">
+                                        <div class="text-sm text-gray-500">—</div>
+                                    </template>
+                                    <ul class="text-sm text-gray-700 list-disc pl-5 space-y-0.5"
+                                        x-show="pkg()?.event_styling?.length">
+                                        <template x-for="item in pkg().event_styling" :key="item">
+                                            <li x-text="item"></li>
+                                        </template>
+                                    </ul>
+                                </div>
+
+                                {{-- Coordination --}}
+                                <div class="mt-3">
+                                    <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Coordination</div>
+                                    <div class="text-sm text-gray-700" x-text="pkg()?.coordination || '—'"></div>
+                                </div>
+                            </div>
+                        </div>
+
 
                         <div>
                             <x-input-label for="venue" value="Venue" />
@@ -49,13 +117,6 @@
                                 value="{{ old('theme') }}" />
                             <x-input-error :messages="$errors->get('theme')" class="mt-2" />
                         </div>
-
-                        {{-- <div>
-                            <x-input-label for="guest_count" value="Guest Count" />
-                            <x-text-input id="guest_count" name="guest_count" type="number" min="1"
-                                class="mt-1 block w-full" value="{{ old('guest_count') }}" />
-                            <x-input-error :messages="$errors->get('guest_count')" class="mt-2" />
-                        </div> --}}
 
                         <div class="md:col-span-2">
                             <x-input-label for="budget" value="Budget (optional)" />
@@ -184,37 +245,100 @@
     {{-- Alpine data: package -> default vendor IDs --}}
     <script>
         function eventForm() {
-            const packageVendors = {
-                @foreach($packages as $p)
-                    {{ $p->id }}: [@foreach($p->vendors as $pv) {{ $pv->id }}@if(!$loop->last),@endif @endforeach],
-                @endforeach
-            };
-            return {
-                selectedPackage: Number(@json(old('package_id')) || 0),
-                manual: new Set(), 
-                vendorChecked(id) {
-                    if (this.manual.has(id)) {
+    // Build vendor defaults map (already in your code)
+    const packageVendors = {
+        @foreach($packages as $p)
+            {{ $p->id }}: [@foreach($p->vendors as $pv) {{ $pv->id }}@if(!$loop->last),@endif @endforeach],
+        @endforeach
+    };
 
-                        const el = this.$refs['vendor_' + id];
-                        return !!(el && el.checked);
-                    }
-                    const defaults = packageVendors[this.selectedPackage] || [];
-                    return defaults.includes(id);
-                },
-                applyPackageDefaults() {
-    
-                    this.manual.clear();
-                    const defaults = new Set(packageVendors[this.selectedPackage] || []);
+    // Build package details (id => details) for UI
+    const packageDetails = {
+        @foreach($packages as $p)
+            {{ $p->id }}: @js([
+                'id'            => $p->id,
+                'name'          => $p->name,
+                'description'   => $p->description,
+                'price'         => $p->base_price ?? $p->price,
+                'coordination'  => $p->coordination,
+                'event_styling' => is_array($p->event_styling) ? array_values($p->event_styling) : [],
+                'inclusions'    => $p->inclusions->map(fn($i) => [
+                    'id'    => $i->id,
+                    'name'  => $i->name,
+                    'notes' => $i->pivot->notes,
+                ])->values(),
+                'vendors'       => $p->vendors->map(fn($v) => [
+                    'id'       => $v->id,
+                    'name'     => $v->name,
+                    'category' => $v->category,
+                    'price'    => $v->price,
+                ])->values(),
+            ]),
+        @endforeach
+    };
 
-                    Object.keys(this.$refs).forEach(k => {
-                        if (!k.startsWith('vendor_')) return;
-                        const el = this.$refs[k];
-                        const id = Number(k.replace('vendor_', ''));
-                        el.checked = defaults.has(id);
+    // If page came from "Book this package" link
+    const initial = Number(@json(old('package_id', request('package_id'))) || 0);
+
+    return {
+        // state
+        selectedPackage: initial,
+        manual: new Set(),
+
+        // UI helpers
+        pkg() { return packageDetails[this.selectedPackage] || null; },
+        formatPrice(n) {
+            if (n === null || n === undefined) return '';
+            return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        hasAnyIncNotes() {
+            const p = this.pkg(); if (!p) return false;
+            return (p.inclusions || []).some(i => (i.notes || '').trim() !== '');
+        },
+        inclusionNotesPreview() {
+            const p = this.pkg(); if (!p) return [];
+            // Combine first lines from inclusions' notes (max ~5 bullets)
+            const lines = [];
+            (p.inclusions || []).forEach(i => {
+                if (i.notes) {
+                    i.notes.split(/\r\n|\r|\n/).slice(0, 2).forEach(line => {
+                        const t = line.trim(); if (t) lines.push(`${i.name}: ${t}`);
                     });
-                },
-                toggleManual(id) { this.manual.add(id); },
+                }
+            });
+            return lines.slice(0, 5);
+        },
+
+        // vendor defaults logic
+        vendorChecked(id) {
+            if (this.manual.has(id)) {
+                const el = this.$refs['vendor_' + id];
+                return !!(el && el.checked);
+            }
+            const defaults = packageVendors[this.selectedPackage] || [];
+            return defaults.includes(id);
+        },
+        applyPackageDefaults() {
+            this.manual.clear();
+            const defaults = new Set(packageVendors[this.selectedPackage] || []);
+            Object.keys(this.$refs).forEach(k => {
+                if (!k.startsWith('vendor_')) return;
+                const el = this.$refs[k];
+                const id = Number(k.replace('vendor_', ''));
+                el.checked = defaults.has(id);
+            });
+        },
+        toggleManual(id) { this.manual.add(id); },
+
+        // init
+        init() {
+            if (this.selectedPackage) {
+                // if preselected via query/old, apply defaults on load
+                this.$nextTick(() => this.applyPackageDefaults());
             }
         }
+    }
+}
     </script>
+
 </x-app-layout>
