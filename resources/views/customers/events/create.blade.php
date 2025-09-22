@@ -100,6 +100,18 @@
                                     <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Coordination</div>
                                     <div class="text-sm text-gray-700" x-text="pkg()?.coordination || '—'"></div>
                                 </div>
+
+                                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="text-sm text-gray-700">
+                                        <span class="text-gray-500">Coordination:</span>
+                                        ₱<span x-text="formatPrice(pkg()?.coordination_price ?? 25000)"></span>
+                                    </div>
+                                    <div class="text-sm text-gray-700">
+                                        <span class="text-gray-500">Event Styling:</span>
+                                        ₱<span x-text="formatPrice(pkg()?.event_styling_price ?? 55000)"></span>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
@@ -262,6 +274,8 @@
                 'price'         => $p->base_price ?? $p->price,
                 'coordination'  => $p->coordination,
                 'event_styling' => is_array($p->event_styling) ? array_values($p->event_styling) : [],
+                'coordination_price'  => $p->coordination_price,
+                'event_styling_price' => $p->event_styling_price,
                 'inclusions'    => $p->inclusions->map(fn($i) => [
                     'id'    => $i->id,
                     'name'  => $i->name,

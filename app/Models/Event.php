@@ -51,4 +51,11 @@ class Event extends Model
     {
         return $this->hasMany(Guest::class);
     }
+
+    public function inclusions()
+    {
+        return $this->belongsToMany(Inclusion::class)
+            ->withPivot(['price'])
+            ->withTimestamps();
+    }
 }

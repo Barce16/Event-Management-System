@@ -18,6 +18,8 @@ class Package extends Model
         'is_active',
         'event_styling',
         'coordination',
+        'coordination_price',
+        'event_styling_price',
 
     ];
 
@@ -36,13 +38,15 @@ class Package extends Model
 
     public function inclusions()
     {
-        return $this->belongsToMany(\App\Models\Inclusion::class, 'package_inclusion')
-            ->withPivot(['notes'])
+        return $this->belongsToMany(Inclusion::class, 'package_inclusion')
+            ->withPivot('notes')
             ->withTimestamps();
     }
 
     protected $casts = [
         'is_active'     => 'boolean',
         'event_styling' => 'array',
+        'coordination_price' => 'decimal:2',
+        'event_styling_price' => 'decimal:2',
     ];
 }

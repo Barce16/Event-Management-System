@@ -11,6 +11,7 @@ use App\Http\Controllers\Customer\EventController as CustomerEventController;
 use App\Http\Controllers\Admin\AdminEventController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Admin\InclusionController;
 use App\Http\Controllers\Staff\ScheduleController;
 use App\Http\Middleware\CheckAdmin;
 use App\Http\Middleware\EnsureCustomer;
@@ -88,6 +89,9 @@ Route::middleware('auth')->group(function () {
 
                 Route::patch('packages/{package}/toggle', [PackageController::class, 'toggle'])
                     ->name('packages.toggle');
+
+                Route::resource('inclusions', InclusionController::class)
+                    ->names('inclusions');
             });
 
             // ---- Payroll ----

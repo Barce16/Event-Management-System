@@ -60,7 +60,7 @@
                         </div>
 
                         <div class="md:col-span-2">
-                            <x-input-label for="budget" value="Budget (optional)" />
+                            <x-input-label for="budget" value="Budget" />
                             <x-text-input id="budget" name="budget" type="number" step="0.01" min="0"
                                 class="mt-1 block w-full" value="{{ old('budget', $event->budget) }}" />
                             <x-input-error :messages="$errors->get('budget')" class="mt-2" />

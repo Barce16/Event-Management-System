@@ -9,12 +9,26 @@ class Inclusion extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'category', 'is_active'];
+    protected $fillable = [
+        'name',
+        'category',
+        'price',
+        'is_active',
+        'contact_person',
+        'contact_email',
+        'contact_phone',
+    ];
 
     public function packages()
     {
-        return $this->belongsToMany(\App\Models\Package::class, 'package_inclusion')
-            ->withPivot(['notes'])
+        return $this->belongsToMany(Package::class, 'package_inclusion')
+            ->withPivot('notes')
+            ->withTimestamps();
+    }
+    public function events()
+    {
+        return $this->belongsToMany(Event::class)
+            ->withPivot(['price'])
             ->withTimestamps();
     }
 }

@@ -217,12 +217,12 @@
                     <div class="rounded-lg border {{ $c['border'] }} {{ $c['bg'] }} p-4 flex flex-col">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <div class="text-lg font-semibold">{{ $p->name }}</div>
+                                <div class="text-2xl font-semibold">{{ $p->name }}</div>
                                 @if(!is_null($price))
                                 <div class="text-gray-700 font-medium">₱{{ number_format($price, 2) }}</div>
                                 @endif
                             </div>
-                            <span class="px-2 py-1 rounded text-xs {{ $c['chip'] }}">
+                            <span class="px-2 py-1 font-medium rounded text-sm {{ $c['chip'] }}">
                                 {{ $p->is_active ? 'Active' : 'Inactive' }}
                             </span>
                         </div>
@@ -230,6 +230,11 @@
                         @if($p->description)
                         <p class="text-sm text-gray-600 mt-2">{{ Str::limit($p->description, 120) }}</p>
                         @endif
+
+                        <div class="mt-2 text-sm text-gray-700">
+                            <div>Coordination: ₱{{ number_format($p->coordination_price ?? 25000, 2) }}</div>
+                            <div>Event Styling: ₱{{ number_format($p->event_styling_price ?? 55000, 2) }}</div>
+                        </div>
 
                         <div class="mt-3">
                             <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Inclusions</div>

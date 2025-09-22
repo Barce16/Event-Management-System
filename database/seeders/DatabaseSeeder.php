@@ -14,7 +14,6 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Helper to upsert a user by email OR username.
         $upsertUser = function (array $attrs): User {
             $email = $attrs['email'] ?? null;
             $username = $attrs['username'] ?? null;
@@ -24,20 +23,17 @@ class DatabaseSeeder extends Seeder
                 ->when($username, fn($q) => $q->orWhere('username', $username))
                 ->first();
 
-            // Ensure password exists (especially for factory-like seeds)
             if (empty($attrs['password'])) {
-                $attrs['password'] = Hash::make('password'); // default seed password
+                $attrs['password'] = Hash::make('password');
             }
 
             if ($user) {
-                // Update existing without changing unique keys unintentionally
                 $user->fill([
                     'name'      => $attrs['name']      ?? $user->name,
                     'username'  => $username           ?? $user->username,
                     'email'     => $email              ?? $user->email,
                     'user_type' => $attrs['user_type'] ?? $user->user_type,
                 ]);
-                // Only update password if you explicitly passed it in attrs
                 if (array_key_exists('password', $attrs)) {
                     $user->password = $attrs['password'];
                 }
@@ -111,6 +107,7 @@ class DatabaseSeeder extends Seeder
             'event_styling' => ['Stage setup', '2-3 candles', 'Aisle decor'],
             'coordination'  => 'Day-of coordination, supplier follow-ups',
         ]);
+
         $premium->vendors()->sync(array_values(array_filter([$catering, $photo, $florist, $lights])));
 
         // ---- INCLUSIONS ----

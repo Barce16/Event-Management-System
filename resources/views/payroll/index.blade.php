@@ -10,7 +10,7 @@
                 <input type="date" name="from" value="{{ $from }}" class="border rounded px-3 py-2">
                 <input type="date" name="to" value="{{ $to   }}" class="border rounded px-3 py-2">
                 <select name="status" class="border rounded px-3 py-2">
-                    <option value="">All statuses</option>
+                    <option value="">All status</option>
                     @foreach(['pending','approved','paid'] as $s)
                     <option value="{{ $s }}" @selected($status===$s)>{{ ucfirst($s) }}</option>
                     @endforeach

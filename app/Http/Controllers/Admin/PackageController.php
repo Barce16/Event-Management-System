@@ -62,6 +62,8 @@ class PackageController extends Controller
             'inclusions.*.notes'    => ['nullable', 'string', 'max:5000'],
             'event_styling_text' => ['nullable', 'string', 'max:10000'],
             'coordination'       => ['nullable', 'string', 'max:5000'],
+            'coordination_price'    => ['nullable', 'numeric', 'min:0'],
+            'event_styling_price'   => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $eventStylingArray = collect(preg_split('/\r\n|\r|\n/', $data['event_styling_text'] ?? ''))
@@ -69,6 +71,9 @@ class PackageController extends Controller
             ->filter()
             ->values()
             ->all();
+
+        $coordinationPrice = $request->input('coordination_price', 25000);
+        $stylingPrice      = $request->input('event_styling_price', 55000);
 
         $package = Package::create([
             'name'        => $data['name'],
@@ -78,6 +83,8 @@ class PackageController extends Controller
             'is_active'   => $request->boolean('is_active', true),
             'event_styling' => $eventStylingArray,
             'coordination'  => $data['coordination'] ?? null,
+            'coordination_price'   => $coordinationPrice,
+            'event_styling_price'  => $stylingPrice,
         ]);
 
         $incoming = $request->input('inclusions', []);
@@ -132,6 +139,8 @@ class PackageController extends Controller
             'inclusions.*.notes'    => ['nullable', 'string', 'max:5000'],
             'event_styling_text' => ['nullable', 'string', 'max:10000'],
             'coordination'       => ['nullable', 'string', 'max:5000'],
+            'coordination_price'    => ['nullable', 'numeric', 'min:0'],
+            'event_styling_price'   => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $eventStylingArray = collect(preg_split('/\r\n|\r|\n/', $data['event_styling_text'] ?? ''))
@@ -139,6 +148,9 @@ class PackageController extends Controller
             ->filter()
             ->values()
             ->all();
+
+        $coordinationPrice = $request->input('coordination_price', 25000);
+        $stylingPrice      = $request->input('event_styling_price', 55000);
 
         $package->update([
             'name'        => $data['name'],
@@ -148,6 +160,9 @@ class PackageController extends Controller
             'is_active'   => $request->boolean('is_active', $package->is_active),
             'event_styling' => $eventStylingArray,
             'coordination'  => $data['coordination'] ?? null,
+            'coordination_price'   => $coordinationPrice,
+            'event_styling_price'  => $stylingPrice,
+
         ]);
 
         // -- Sync vendors

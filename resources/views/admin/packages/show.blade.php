@@ -68,6 +68,21 @@
             @endif
         </div>
 
+        <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <div class="text-gray-600 text-sm">Coordination Price</div>
+                <div class="font-medium">
+                    ₱{{ number_format($package->coordination_price ?? 25000, 2) }}
+                </div>
+            </div>
+            <div>
+                <div class="text-gray-600 text-sm">Event Styling Price</div>
+                <div class="font-medium">
+                    ₱{{ number_format($package->event_styling_price ?? 55000, 2) }}
+                </div>
+            </div>
+        </div>
+
         <div>
             <div class="text-gray-600 text-sm mb-1">Status</div>
             @php $badge = $package->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'; @endphp
