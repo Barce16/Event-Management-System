@@ -12,11 +12,11 @@
                         class="block px-3 py-2 rounded {{ request()->routeIs('admin.management.index') ? 'bg-gray-900 text-white' : 'hover:bg-gray-100' }}">
                         Overview
                     </a>
-
+                    {{--
                     <a href="{{ route('admin.management.vendors.index') }}"
                         class="block px-3 py-2 rounded {{ request()->routeIs('admin.management.vendors.*') ? 'bg-gray-100 font-medium' : '' }}">
                         Vendors
-                    </a>
+                    </a> --}}
 
                     <a href="{{ route('admin.management.packages.index') }}"
                         class="block px-3 py-2 rounded {{ request()->routeIs('admin.management.packages.*') ? 'bg-gray-100 font-medium' : '' }}">

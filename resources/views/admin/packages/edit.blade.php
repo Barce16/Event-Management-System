@@ -1,8 +1,35 @@
 <x-admin.layouts.management>
-    <div class="bg-white rounded-lg shadow-sm p-6 space-y-4 max-w-3xl">
+    @php
+    $config = [
+    'initialInclusions' => old('inclusions',
+    $package->inclusions
+    ->map(fn($i) => ['id' => $i->id, 'notes' => $i->pivot->notes])
+    ->values()
+    ),
+    'names' => $inclusions->pluck('name','id'),
+    'categories' => $inclusions->pluck('category','id'),
+    'prices' => $inclusions->pluck('price','id'),
+    'defaults' => [
+    'coordinationPrice' => old('coordination_price', $package->coordination_price ?? 25000),
+    'eventStylingPrice' => old('event_styling_price', $package->event_styling_price ?? 55000),
+    'packagePrice' => old('price', $package->price ?? 0),
+    'autoCalc' => (bool) old('autoCalc', true),
+    'coordination' => old('coordination', $package->coordination ?? ''),
+    'eventStylingText' => old('event_styling_text', is_array($package->event_styling) ? implode("\n",
+    $package->event_styling) : ''),
+    'isActive' => (bool) old('is_active', $package->is_active),
+    ],
+    ];
+    @endphp
+    <script type="application/json" id="pkg-config">
+        {!! json_encode($config) !!}
+    </script>
+
+    <div class="bg-white rounded-lg shadow-sm p-6 space-y-6 max-w-3xl" x-data="packagePricing()" x-init="init()"
+        x-cloak>
         <h3 class="text-lg font-semibold">Edit Package</h3>
 
-        <form method="POST" action="{{ route('admin.management.packages.update', $package) }}" class="space-y-4">
+        <form method="POST" action="{{ route('admin.management.packages.update', $package) }}" class="space-y-6">
             @csrf @method('PUT')
 
             <div>
@@ -26,18 +53,7 @@
                 }
             </style>
 
-            <div x-data="inclusionsEditor({
-                    initial: @js(
-                        old('inclusions',
-                            $package->inclusions
-                                ->map(fn($i) => ['id'=>$i->id, 'notes'=>$i->pivot->notes])
-                                ->values()
-                        )
-                    ),
-                    names: @js($inclusions->pluck('name','id')),
-                    categories: @js($inclusions->pluck('category','id')),
-                    prices: @js($inclusions->pluck('price','id')),
-                })" x-cloak class="mt-6 bg-white rounded-lg shadow-sm space-y-4">
+            <div class="space-y-4">
                 <h4 class="font-semibold text-base">Inclusions</h4>
 
                 {{-- Picker --}}
@@ -54,14 +70,12 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="text-sm text-gray-700 shrink-0">
-                            ₱{{ number_format($inc->price, 2) }}
-                        </div>
+                        <div class="text-sm text-gray-700 shrink-0">₱{{ number_format($inc->price, 2) }}</div>
                     </label>
                     @endforeach
                 </div>
 
-                {{-- Selected list w/ price preview --}}
+                {{-- Selected list --}}
                 <template x-if="selected.length">
                     <div class="space-y-2">
                         <template x-for="(row, idx) in selected" :key="row.id">
@@ -79,14 +93,11 @@
                                             ₱<span x-text="fmt(prices[row.id] ?? 0)"></span>
                                         </span>
                                         <button type="button" class="text-xs text-gray-500 hover:text-red-600"
-                                            @click="remove(row.id)" aria-label="Remove inclusion">
-                                            Remove
-                                        </button>
+                                            @click="remove(row.id)">Remove</button>
                                     </div>
                                 </div>
 
-                                <label class="sr-only" :for="`inc-notes-${row.id}`">Notes for inclusion</label>
-                                <textarea :id="`inc-notes-${row.id}`"
+                                <textarea
                                     class="mt-2 w-full border rounded px-3 py-2 text-sm resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                                     :name="`inclusions[${idx}][notes]`" x-model.trim="row.notes" rows="1"
                                     x-init="autoResize($el)" @input="autoResize($event.target)"
@@ -96,83 +107,31 @@
                             </div>
                         </template>
 
-                        {{-- Subtotal preview --}}
+                        {{-- Subtotal --}}
                         <div class="flex items-center justify-between mt-3 border-t pt-3">
                             <div class="text-sm text-gray-600">Inclusions Subtotal</div>
-                            <div class="text-base font-semibold">
-                                ₱<span x-text="fmt(subtotal())"></span>
-                            </div>
+                            <div class="text-base font-semibold">₱<span x-text="fmt(subtotal())"></span></div>
                         </div>
                     </div>
                 </template>
 
-                {{-- Validation errors --}}
                 <x-input-error :messages="$errors->get('inclusions')" />
                 <x-input-error :messages="$errors->get('inclusions.*.id')" />
                 <x-input-error :messages="$errors->get('inclusions.*.notes')" />
             </div>
 
-            <script>
-                document.addEventListener('alpine:init', () => {
-                    Alpine.data('inclusionsEditor', ({ initial = [], names = {}, categories = {}, prices = {} }) => ({
-                        selected: Array.isArray(initial) ? [...initial] : [],
-                        names, categories, prices,
-                        fmt(n){ return Number(n || 0).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2}); },
-
-                        init(){
-                                this.$nextTick(() => this.reflowAllTextareas());
-                            },
-
-                        has(id){
-                            id = Number(id);
-                            return this.selected.findIndex(x => Number(x.id) === id) !== -1;
-                        },
-                        toggle(id){
-                            id = Number(id);
-                            const i = this.selected.findIndex(x => Number(x.id) === id);
-                            if(i > -1){ this.selected.splice(i,1); }
-                            else{ this.selected.push({ id, notes: '' }); }
-                            this.$nextTick(() => this.reflowAllTextareas());
-                        },
-                        remove(id){
-                            id = Number(id);
-                            const i = this.selected.findIndex(x => Number(x.id) === id);
-                            if(i > -1) this.selected.splice(i, 1);
-                            this.$nextTick(() => this.reflowAllTextareas());
-                        },
-
-                        subtotal(){
-                            return this.selected.reduce((sum, row) => {
-                                const p = Number(this.prices[row.id] ?? 0);
-                                return sum + (isNaN(p) ? 0 : p);
-                            }, 0);
-                        },
-
-                        autoResize(el){
-                            el.style.height = 'auto';
-                            el.style.overflow = 'hidden';
-                            el.style.height = el.scrollHeight + 'px';
-                        },
-                        reflowAllTextareas(){
-                            this.$root.querySelectorAll('textarea').forEach(t => this.autoResize(t));
-                        },
-                    }));
-                });
-            </script>
-
-            {{-- Coordination --}}
+            {{-- Coordination & Event styling --}}
             <div>
                 <x-input-label>Coordination</x-input-label>
-                <textarea name="coordination" rows="3" class="w-full border rounded px-3 py-2"
-                    placeholder="e.g., Full coordination on the day; timeline and supplier follow-ups">{{ old('coordination', $package->coordination ?? '') }}</textarea>
+                <textarea name="coordination" rows="3" class="w-full border rounded px-3 py-2" x-model="coordination"
+                    placeholder="e.g., Full coordination on the day; timeline and supplier follow-ups"></textarea>
                 <x-input-error :messages="$errors->get('coordination')" />
             </div>
 
-            {{-- Event Styling --}}
             <div>
                 <x-input-label>Event Styling (one per line)</x-input-label>
                 <textarea name="event_styling_text" rows="4" class="w-full border rounded px-3 py-2"
-                    placeholder="Stage setup&#10;2-3 candles&#10;Aisle decor">{{ old('event_styling_text', is_array($package->event_styling) ? implode("\n", $package->event_styling) : '') }}</textarea>
+                    x-model="eventStylingText" placeholder="Stage setup&#10;2-3 candles&#10;Aisle decor"></textarea>
                 <x-input-error :messages="$errors->get('event_styling_text')" />
             </div>
 
@@ -180,29 +139,33 @@
                 <div>
                     <x-input-label>Coordination Price</x-input-label>
                     <x-text-input type="number" step="0.01" min="0" name="coordination_price" class="w-full"
-                        value="{{ old('coordination_price', $package->coordination_price ?? 25000) }}" />
+                        x-model.number="coordinationPrice" />
                     <x-input-error :messages="$errors->get('coordination_price')" />
                 </div>
-
                 <div>
                     <x-input-label>Event Styling Price</x-input-label>
                     <x-text-input type="number" step="0.01" min="0" name="event_styling_price" class="w-full"
-                        value="{{ old('event_styling_price', $package->event_styling_price ?? 55000) }}" />
+                        x-model.number="eventStylingPrice" />
                     <x-input-error :messages="$errors->get('event_styling_price')" />
                 </div>
             </div>
 
+            {{-- Price --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <x-input-label for="price" value="Package Price" />
                     <x-text-input id="price" name="price" type="number" step="0.01" class="mt-1 block w-full"
-                        value="{{ old('price', $package->price) }}" required />
-                    <x-input-error :messages="$errors->get('price')" class="mt-2" />
+                        x-model.number="packagePrice" x-bind:readonly="autoCalc" required />
+                    <div class="mt-2 flex items-center gap-2 text-sm">
+                        <input type="checkbox" class="rounded border-gray-300" id="autoCalc" x-model="autoCalc">
+                        <label for="autoCalc">Auto-calc from inclusions + coordination + styling</label>
+                    </div>
+                    <input type="hidden" name="autoCalc" :value="autoCalc ? 1 : 0">
                 </div>
 
                 <div class="flex items-center gap-2 mt-6">
                     <input id="is_active" name="is_active" type="checkbox" value="1" class="rounded border-gray-300"
-                        @checked(old('is_active', $package->is_active)) />
+                        :checked="isActive" @change="isActive = $event.target.checked" />
                     <x-input-label for="is_active" value="Active" />
                 </div>
             </div>
@@ -213,4 +176,82 @@
             </div>
         </form>
     </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('packagePricing', () => ({
+                names: {}, categories: {}, prices: {},
+                selected: [],
+                coordinationPrice: 0,
+                eventStylingPrice: 0,
+                packagePrice: 0,
+                autoCalc: true,
+                coordination: '',
+                eventStylingText: '',
+                isActive: true,
+
+                fmt(n){ return Number(n || 0).toLocaleString(undefined,{ minimumFractionDigits:2, maximumFractionDigits:2 }); },
+                has(id){ id = Number(id); return this.selected.findIndex(x => Number(x.id) === id) !== -1; },
+                toggle(id){
+                    id = Number(id);
+                    const i = this.selected.findIndex(x => Number(x.id) === id);
+                    if (i > -1) this.selected.splice(i, 1);
+                    else this.selected.push({ id, notes: '' });
+                    this.$nextTick(this.maybeRecalc);
+                },
+                remove(id){
+                    id = Number(id);
+                    const i = this.selected.findIndex(x => Number(x.id) === id);
+                    if (i > -1) this.selected.splice(i, 1);
+                    this.$nextTick(this.maybeRecalc);
+                },
+                subtotal(){
+                    return this.selected.reduce((sum, row) => {
+                        const p = Number(this.prices[row.id] ?? 0);
+                        return sum + (isNaN(p) ? 0 : p);
+                    }, 0);
+                },
+                grandTotal(){
+                    return (this.subtotal() || 0) + (this.coordinationPrice || 0) + (this.eventStylingPrice || 0);
+                },
+                maybeRecalc(){
+                    if (this.autoCalc) this.packagePrice = this.grandTotal();
+                },
+                autoResize(el){
+                    el.style.height = 'auto';
+                    el.style.overflow = 'hidden';
+                    el.style.height = el.scrollHeight + 'px';
+                },
+
+                init(){
+                    const cfgEl = document.getElementById('pkg-config');
+                    const cfg = cfgEl ? JSON.parse(cfgEl.textContent) : {};
+
+                    this.names      = cfg.names      || {};
+                    this.categories = cfg.categories || {};
+                    this.prices     = cfg.prices     || {};
+                    this.selected   = Array.isArray(cfg.initialInclusions) ? [...cfg.initialInclusions] : [];
+
+                    const d = cfg.defaults || {};
+                    this.coordinationPrice = Number(d.coordinationPrice ?? 25000);
+                    this.eventStylingPrice = Number(d.eventStylingPrice ?? 55000);
+                    this.packagePrice      = Number(d.packagePrice ?? 0);
+                    this.autoCalc          = !!d.autoCalc;
+                    this.coordination      = d.coordination ?? '';
+                    this.eventStylingText  = d.eventStylingText ?? '';
+                    this.isActive          = !!d.isActive;
+
+                    this.$watch('selected', this.maybeRecalc);
+                    this.$watch('coordinationPrice', this.maybeRecalc);
+                    this.$watch('eventStylingPrice', this.maybeRecalc);
+                    this.$watch('autoCalc', this.maybeRecalc);
+
+                    this.maybeRecalc();
+                    this.$nextTick(() => {
+                        this.$root.querySelectorAll('textarea').forEach(t => this.autoResize(t));
+                    });
+                },
+            }));
+        });
+    </script>
 </x-admin.layouts.management>

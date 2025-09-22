@@ -15,21 +15,31 @@
             <div class="text-gray-600 text-sm mb-1">Description</div>
             <div class="whitespace-pre-line">{{ $package->description ?: '—' }}</div>
         </div>
-
         <div>
             <div class="text-gray-600 text-sm mb-1">Inclusions</div>
+
             @if($package->inclusions->isEmpty())
             <div class="text-gray-500">No inclusions added.</div>
             @else
             <ul class="space-y-2">
                 @foreach($package->inclusions as $inc)
                 <li class="border rounded p-3">
-                    <div class="font-extrabold mb-2">
-                        {{ $inc->name }}
-                        @if($inc->category)
-                        <span class="text-xs">• {{ $inc->category }}</span>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="font-extrabold">
+                            {{ $inc->name }}
+                            @if($inc->category)
+                            <span class="text-xs">• {{ $inc->category }}</span>
+                            @endif
+                        </div>
+
+                        @if(!empty($inc->price))
+                        <div class="text-base font-medium text-gray-800">
+                            ₱{{ number_format($inc->price, 2) }}
+                        </div>
                         @endif
                     </div>
+
+                    {{-- Notes --}}
                     @if($inc->pivot->notes)
                     <div class="text-sm text-gray-700 leading-tight">
                         @foreach(preg_split('/\r\n|\r|\n/', $inc->pivot->notes) as $line)
@@ -46,7 +56,6 @@
             </ul>
             @endif
         </div>
-
 
         {{-- Coordination --}}
         <div class="mt-4">
@@ -89,31 +98,6 @@
             <span class="px-2 py-1 rounded text-xs {{ $badge }}">
                 {{ $package->is_active ? 'Active' : 'Inactive' }}
             </span>
-        </div>
-
-        <div>
-            <div class="text-gray-600 text-sm mb-1">Vendors Included</div>
-            @if($package->vendors->isEmpty())
-            <div class="text-gray-500">No vendors added.</div>
-            @else
-            <ul class="list-disc pl-5 space-y-1">
-                @foreach($package->vendors as $v)
-                <li>
-                    <div class="font-medium">{{ $v->name }}</div>
-                    <div class="text-gray-500 text-xs">
-                        {{ $v->email ?: '' }} {{ $v->phone ? '• '.$v->phone : '' }}
-                        @if(!is_null($v->price)) • Default: ₱{{ number_format($v->price, 2) }} @endif
-                        @if(!is_null($v->pivot->price_override)) • Override: ₱{{
-                        number_format($v->pivot->price_override, 2) }} @endif
-                    </div>
-                </li>
-                @endforeach
-            </ul>
-            @endif
-        </div>
-
-        <div class="pt-4 border-t">
-            <a href="{{ route('admin.management.packages.index') }}" class="underline">Back to packages</a>
         </div>
 
         <div class="pt-6 border-t">
@@ -178,5 +162,9 @@
             @endif
         </div>
 
+
+        <div class="pt-4 border-t">
+            <a href="{{ route('admin.management.packages.index') }}" class="underline">Back to packages</a>
+        </div>
     </div>
 </x-admin.layouts.management>
