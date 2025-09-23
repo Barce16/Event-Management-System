@@ -78,16 +78,14 @@ class EventController extends Controller
                 'theme'       => $validated['theme'] ?? null,
                 'budget'      => $validated['budget'] ?? null,
                 'notes'       => $validated['notes'] ?? null,
-                'status'      => 'requested', // or whatever your default is
+                'status'      => 'requested',
             ]);
 
-            // 2) Attach vendors if any
             if (!empty($validated['vendors'])) {
-                // if you have price overrides you’d handle pivot fields here
+
                 $event->vendors()->sync($validated['vendors']);
             }
 
-            // 3) Insert guests (bulk)
             if (!empty($validated['guests'])) {
                 $rows = collect($validated['guests'])->map(function ($g) use ($event) {
                     return [

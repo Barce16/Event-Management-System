@@ -39,7 +39,6 @@ class Package extends Model
     public function inclusions()
     {
         return $this->belongsToMany(Inclusion::class, 'package_inclusion')
-            ->withPivot('notes')
             ->withTimestamps();
     }
 

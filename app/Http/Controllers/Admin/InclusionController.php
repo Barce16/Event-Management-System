@@ -32,6 +32,7 @@ class InclusionController extends Controller
             'name'      => ['required', 'string', 'max:255'],
             'category'  => ['nullable', 'string', 'max:255'],
             'price'     => ['required', 'numeric', 'min:0'],
+            'notes' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ]);
         $data['is_active'] = $request->boolean('is_active', true);
@@ -52,6 +53,7 @@ class InclusionController extends Controller
             'name'      => ['required', 'string', 'max:255'],
             'category'  => ['nullable', 'string', 'max:255'],
             'price'     => ['required', 'numeric', 'min:0'],
+            'notes' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ]);
         $inclusion->update([

@@ -13,6 +13,12 @@
             </div>
 
             <div>
+                <x-input-label>Category (optional)</x-input-label>
+                <x-text-input name="category" class="w-full"
+                    value="{{ old('category', $inclusion->category ?? '') }}" />
+            </div>
+
+            <div>
                 <x-input-label for="contact_person" value="Contact Person" />
                 <x-text-input id="contact_person" name="contact_person" type="text" class="mt-1 block w-full"
                     value="{{ old('contact_person', $inclusion->contact_person ?? '') }}" />
@@ -31,16 +37,27 @@
             </div>
 
             <div>
-                <x-input-label>Category (optional)</x-input-label>
-                <x-text-input name="category" class="w-full"
-                    value="{{ old('category', $inclusion->category ?? '') }}" />
-            </div>
-            <div>
                 <x-input-label>Price</x-input-label>
                 <x-text-input type="number" step="0.01" min="0" name="price" class="w-full"
                     value="{{ old('price', isset($inclusion) ? $inclusion->price : 0) }}" />
                 <x-input-error :messages="$errors->get('price')" />
             </div>
+
+            <div class="col-span-2" x-data="{
+                resize(el){ el.style.height = 'auto'; el.style.overflow = 'hidden'; el.style.height = el.scrollHeight + 'px'; }
+            }">
+                <x-input-label for="notes" value="Notes" />
+                <textarea id="notes" name="notes" rows="1"
+                    class="mt-1 w-full border rounded px-3 py-2 resize-none overflow-hidden" x-init="
+                    resize($el);
+                    $nextTick(() => resize($el));
+                    setTimeout(() => resize($el), 0);
+                " @input="resize($event.target)">{{ old('notes', $inclusion->notes ?? '') }}</textarea>
+                <x-input-error :messages="$errors->get('notes')" class="mt-2" />
+            </div>
+
+
+
             <div class="flex items-end">
                 <label class="inline-flex items-center gap-2">
                     <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $inclusion->is_active ??
@@ -53,8 +70,9 @@
 
         <div class="flex justify-end gap-2">
             <a href="{{ route('admin.management.inclusions.index') }}" class="px-3 py-2 border rounded">Cancel</a>
-            <button class="px-4 py-2 bg-gray-800 text-white rounded">{{ isset($inclusion)?'Save Changes':'Create
-                Inclusion' }}</button>
+            <button class="px-4 py-2 bg-gray-800 text-white rounded">
+                {{ isset($inclusion) ? 'Save Changes' : 'Create Inclusion' }}
+            </button>
         </div>
     </form>
 </x-admin.layouts.management>
