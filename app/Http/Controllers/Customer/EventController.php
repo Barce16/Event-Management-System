@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\Guest;
+use App\Models\Vendor;
+use App\Models\Package;
+use App\Models\Inclusion;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -29,13 +32,13 @@ class EventController extends Controller
         $customer = $request->user()->customer;
         abort_if(!$customer, 403);
 
-        $packages = \App\Models\Package::with([
+        $packages = Package::with([
             'vendors:id,name,category,price',
             'inclusions'
         ])->where('is_active', true)->orderBy('price')->get();
 
 
-        $vendors = \App\Models\Vendor::where('is_active', true)->orderBy('name')->get();
+        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
 
         return view('customers.events.create', compact('packages', 'vendors'));
     }
@@ -43,69 +46,108 @@ class EventController extends Controller
 
 
 
+
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'event_date'  => ['required', 'date'],
-            'package_id'  => ['nullable', 'exists:packages,id'],
-            'venue'       => ['nullable', 'string', 'max:255'],
-            'theme'       => ['nullable', 'string', 'max:255'],
-            'budget'      => ['nullable', 'numeric', 'min:0'],
-            'notes'       => ['nullable', 'string'],
+        $data = $request->validate([
+            'name'         => ['required', 'string', 'max:150'],
+            'event_date'   => ['required', 'date'],
+            'package_id'   => ['required', 'exists:packages,id'],
+            'venue'        => ['nullable', 'string', 'max:255'],
+            'theme'        => ['nullable', 'string', 'max:255'],
+            'budget'       => ['nullable', 'numeric', 'min:0'],
+            'notes'        => ['nullable', 'string', 'max:5000'],
 
-            'vendors'     => ['nullable', 'array'],
-            'vendors.*'   => ['integer', 'exists:vendors,id'],
+            'inclusions'   => ['nullable', 'array'],
+            'inclusions.*' => ['integer', 'exists:inclusions,id'],
 
-            'guests'                  => ['nullable', 'array'],
-            'guests.*.name'           => ['required', 'string', 'max:255'],
-            'guests.*.email'          => ['nullable', 'email', 'max:255'],
-            'guests.*.contact_number' => ['nullable', 'string', 'max:50'],
-            'guests.*.party_size'     => ['nullable', 'integer', 'min:1'],
+            'guests'                     => ['nullable', 'array'],
+            'guests.*.name'             => ['nullable', 'string', 'max:150'],
+            'guests.*.email'            => ['nullable', 'email', 'max:255'],
+            'guests.*.contact_number'   => ['nullable', 'string', 'max:255'],
+            'guests.*.party_size'       => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $user = $request->user();
-        $customerId = optional($user->customer)->id;
+        $package = Package::with(['inclusions:id,price'])->findOrFail($data['package_id']);
 
-        DB::transaction(function () use ($validated, $customerId, &$event) {
-            // 1) Create the event
+        $allowedInclusionIds = $package->inclusions->pluck('id')->all();
+        $selectedIds = collect($request->input('inclusions', $allowedInclusionIds))
+            ->map(fn($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $invalid = $selectedIds->diff($allowedInclusionIds);
+        if ($invalid->isNotEmpty()) {
+            return back()
+                ->withErrors(['inclusions' => 'Invalid inclusions for the selected package.'])
+                ->withInput();
+        }
+
+        $inclusionPrices    = Inclusion::whereIn('id', $selectedIds)->pluck('price', 'id');
+        $inclusionsSubtotal = $selectedIds->sum(fn($id) => (float) ($inclusionPrices[$id] ?? 0));
+        $coordination       = (float) ($package->coordination_price ?? 25000);
+        $styling            = (float) ($package->event_styling_price ?? 55000);
+        $grandTotal         = $inclusionsSubtotal + $coordination + $styling;
+
+        $user = $request->user();
+        $customer = $user->customer ?? Customer::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'name'    => $user->name,
+                'email'   => $user->email,
+                'phone'   => $user->phone ?? null,
+                'address' => $user->address ?? null,
+            ]
+        );
+
+
+        $guestPayload = collect($data['guests'] ?? [])
+            ->map(function ($g) {
+                return [
+                    'name'           => trim($g['name'] ?? ''),
+                    'email'          => trim($g['email'] ?? ''),
+                    'contact_number' => trim($g['contact_number'] ?? ''),
+                    'party_size'     => (int) ($g['party_size'] ?? 1),
+                ];
+            })
+
+            ->filter(fn($g) => $g['name'] !== '' || $g['email'] !== '' || $g['contact_number'] !== '')
+            ->values();
+
+        DB::transaction(function () use ($data, $customer, $selectedIds, $inclusionPrices, $guestPayload) {
             $event = Event::create([
-                'name'        => $validated['name'],
-                'event_date'  => $validated['event_date'],
-                'package_id'  => $validated['package_id'] ?? null,
-                'customer_id' => $customerId,
-                'venue'       => $validated['venue'] ?? null,
-                'theme'       => $validated['theme'] ?? null,
-                'budget'      => $validated['budget'] ?? null,
-                'notes'       => $validated['notes'] ?? null,
+                'customer_id' => $customer->id,
+                'name'        => $data['name'],
+                'event_date'  => $data['event_date'],
+                'package_id'  => $data['package_id'],
+                'venue'       => $data['venue'] ?? null,
+                'theme'       => $data['theme'] ?? null,
+                'budget'      => $data['budget'] ?? null,
+                'notes'       => $data['notes'] ?? null,
                 'status'      => 'requested',
             ]);
 
-            if (!empty($validated['vendors'])) {
 
-                $event->vendors()->sync($validated['vendors']);
+            if ($selectedIds->isNotEmpty()) {
+                $attach = [];
+                foreach ($selectedIds as $incId) {
+                    $attach[$incId] = ['price_snapshot' => (float) ($inclusionPrices[$incId] ?? 0)];
+                }
+                $event->inclusions()->attach($attach);
             }
 
-            if (!empty($validated['guests'])) {
-                $rows = collect($validated['guests'])->map(function ($g) use ($event) {
-                    return [
-                        'event_id'       => $event->id,
-                        'name'           => $g['name'],
-                        'email'          => $g['email'] ?? null,
-                        'contact_number' => $g['contact_number'] ?? null,
-                        'party_size'     => (int)($g['party_size'] ?? 1),
-                        'created_at'     => now(),
-                        'updated_at'     => now(),
-                    ];
-                })->all();
-
-                Guest::insert($rows);
+            if ($guestPayload->isNotEmpty()) {
+                $event->guests()->createMany($guestPayload->all());
             }
         });
 
-        return redirect()->route('customer.events.index')
+        return redirect()
+            ->route('customer.events.index')
             ->with('success', 'Event request submitted.');
     }
+
+
     public function show(Request $request, Event $event)
     {
         $customer = $request->user()->customer;
@@ -120,15 +162,14 @@ class EventController extends Controller
         $customer = $request->user()->customer;
         abort_if(!$customer || $event->customer_id !== $customer->id, 403);
 
-        $packages = \App\Models\Package::with(['vendors' => fn($q) => $q->where('is_active', true)])
+        $packages = Package::with(['vendors' => fn($q) => $q->where('is_active', true)])
             ->where('is_active', true)->orderBy('name')->get();
 
-        $vendors  = \App\Models\Vendor::where('is_active', true)->orderBy('name')->get();
 
-        $event->load(['package', 'vendors']);
+        $event->load(['package']);
         $selectedVendorIds = $event->vendors->pluck('id')->all();
 
-        return view('customers.events.edit', compact('event', 'packages', 'vendors', 'selectedVendorIds'));
+        return view('customers.events.edit', compact('event', 'packages', 'selectedVendorIds'));
     }
 
     public function update(Request $request, Event $event)

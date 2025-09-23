@@ -1,8 +1,28 @@
 <x-admin.layouts.management>
+    @php
+    $pkgConfig = [
+    'initialInclusions' => old('inclusions', []),
+    'names' => $inclusions->pluck('name','id'),
+    'categories' => $inclusions->pluck('category','id'),
+    'prices' => $inclusions->pluck('price','id'),
+    'notes' => $inclusions->pluck('notes','id'),
+    'defaults' => [
+    'coordinationPrice' => old('coordination_price', 25000),
+    'eventStylingPrice' => old('event_styling_price', 55000),
+    'packagePrice' => old('price', 0),
+    'autoCalc' => (bool) old('autoCalc', true),
+    ],
+    ];
+    @endphp
+    <script type="application/json" id="pkg-config-create">
+        {!! json_encode($pkgConfig, JSON_UNESCAPED_UNICODE) !!}
+    </script>
+
     <div class="bg-white rounded-lg shadow-sm p-6 space-y-4 max-w-3xl">
         <h3 class="text-lg font-semibold">New Package</h3>
 
-        <form method="POST" action="{{ route('admin.management.packages.store') }}" class="space-y-6">
+        <form method="POST" action="{{ route('admin.management.packages.store') }}" class="space-y-6"
+            enctype="multipart/form-data">
             @csrf
 
             {{-- Basic info --}}
@@ -20,20 +40,8 @@
                 <x-input-error :messages="$errors->get('description')" class="mt-2" />
             </div>
 
-            {{-- PRICING SECTION (one Alpine scope for everything below) --}}
-            <div x-data="packagePricing({
-                    initialInclusions: @js(old('inclusions', [])),
-                    names:      @js($inclusions->pluck('name','id')),
-                    categories: @js($inclusions->pluck('category','id')),
-                    prices:     @js($inclusions->pluck('price','id')),
-                    notes:      @js($inclusions->pluck('notes','id')),
-                    defaults: {
-                        coordinationPrice: @json(old('coordination_price', 25000)),
-                        eventStylingPrice: @json(old('event_styling_price', 55000)),
-                        packagePrice:      @json(old('price', 0)),
-                        autoCalc:          @json(old('autoCalc', true))
-                    }
-                })" x-cloak class="space-y-6">
+            {{-- Pricing + Inclusions (Alpine scope) --}}
+            <div x-data="packagePricing()" x-init="init('#pkg-config-create')" x-cloak class="space-y-6">
                 {{-- Inclusions --}}
                 <div class="bg-white rounded-lg shadow-sm p-4 space-y-4">
                     <h4 class="font-semibold text-base">Inclusions</h4>
@@ -77,13 +85,10 @@
                                                 ₱<span x-text="fmt(prices[row.id] ?? 0)"></span>
                                             </span>
                                             <button type="button" class="text-xs text-gray-500 hover:text-red-600"
-                                                @click="remove(row.id)">
-                                                Remove
-                                            </button>
+                                                @click="remove(row.id)">Remove</button>
                                         </div>
                                     </div>
 
-                                    {{-- Read-only notes (global from inclusion) --}}
                                     <template x-if="notes[row.id]">
                                         <div
                                             class="mt-2 text-xs text-gray-700 whitespace-pre-line border rounded px-3 py-2 bg-white/60">
@@ -99,14 +104,11 @@
                             {{-- Subtotal --}}
                             <div class="flex items-center justify-between mt-3 border-t pt-3">
                                 <div class="text-sm text-gray-600">Inclusions Subtotal</div>
-                                <div class="text-base font-semibold">
-                                    ₱<span x-text="fmt(subtotal())"></span>
-                                </div>
+                                <div class="text-base font-semibold">₱<span x-text="fmt(subtotal())"></span></div>
                             </div>
                         </div>
                     </template>
 
-                    {{-- Validation errors for inclusions --}}
                     <x-input-error :messages="$errors->get('inclusions')" />
                     <x-input-error :messages="$errors->get('inclusions.*.id')" />
                 </div>
@@ -176,6 +178,40 @@ Aisle decor">{{ old('event_styling_text') }}</textarea>
                 <div x-effect="if (autoCalc) { packagePrice = Number(grandTotal().toFixed(2)); }"></div>
             </div>
 
+            {{-- Gallery: multi-file upload with preview (min 4) --}}
+            <div x-data="galleryUploader()" class="space-y-3">
+                <x-input-label value="Gallery Images (minimum 4)" />
+                <input type="file" name="images[]" accept="image/*" multiple class="block"
+                    @change="handleFiles($event)">
+                <x-input-error :messages="$errors->get('images')" />
+                <x-input-error :messages="$errors->get('images.*')" />
+
+                <template x-if="newItems.length">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <template x-for="(img, i) in newItems" :key="img.key">
+                            <div class="relative group">
+                                <div class="relative w-full aspect-[4/3] overflow-hidden rounded-lg border">
+                                    <img :src="img.url" alt="" class="absolute inset-0 w-full h-full object-cover">
+                                </div>
+                                <input type="text" class="mt-1 w-full text-xs border rounded px-2 py-1"
+                                    placeholder="Alt/Caption" x-model="img.alt">
+                                <button type="button"
+                                    class="absolute top-1 right-1 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100"
+                                    @click="removeNew(i)">Remove</button>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                {{-- Hidden alts to match picked order --}}
+                <template x-for="(img, i) in newItems" :key="'alt-'+img.key">
+                    <input type="hidden" :name="'images_alt['+i+']'" x-model="img.alt">
+                </template>
+
+                <p class="text-xs text-gray-500">Tip: Select multiple files at once. Minimum of 4 images is required.
+                </p>
+            </div>
+
             <div class="flex justify-end gap-2">
                 <a href="{{ route('admin.management.packages.index') }}" class="px-3 py-2 border rounded">Cancel</a>
                 <button class="px-4 py-2 bg-gray-800 text-white rounded">Save Package</button>
@@ -191,74 +227,74 @@ Aisle decor">{{ old('event_styling_text') }}</textarea>
 
     <script>
         document.addEventListener('alpine:init', () => {
-          Alpine.data('packagePricing', ({ initialInclusions = [], names = {}, categories = {}, prices = {}, notes = {}, defaults = {} }) => ({
-            // Selected holds objects like { id: 1 }
-            selected: Array.isArray(initialInclusions)
-                ? initialInclusions.map(v => (typeof v === 'object' && v !== null) ? { id: Number(v.id) } : { id: Number(v) })
-                : [],
-            names, categories, prices, notes,
+      Alpine.data('packagePricing', () => ({
+        selected: [],
+        names: {}, categories: {}, prices: {}, notes: {},
+        coordinationPrice: 25000,
+        eventStylingPrice: 55000,
+        packagePrice: 0,
+        autoCalc: true,
 
-            coordinationPrice: Number(defaults.coordinationPrice ?? 25000),
-            eventStylingPrice: Number(defaults.eventStylingPrice ?? 55000),
-            packagePrice:      Number(defaults.packagePrice ?? 0),
-            autoCalc:          Boolean(defaults.autoCalc ?? true),
+        fmt(n){ return Number(n || 0).toLocaleString(undefined,{ minimumFractionDigits:2, maximumFractionDigits:2 }); },
+        has(id){ id = Number(id); return this.selected.findIndex(x => Number(x.id) === id) !== -1; },
+        toggle(id){
+          id = Number(id);
+          const i = this.selected.findIndex(x => Number(x.id) === id);
+          if (i > -1) this.selected.splice(i, 1);
+          else this.selected.push({ id });
+          this.$nextTick(() => { if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2)); });
+        },
+        remove(id){
+          id = Number(id);
+          const i = this.selected.findIndex(x => Number(x.id) === id);
+          if (i > -1) this.selected.splice(i, 1);
+          this.$nextTick(() => { if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2)); });
+        },
+        subtotal(){ return this.selected.reduce((sum, row) => sum + Number(this.prices[row.id] ?? 0), 0); },
+        grandTotal(){ return (this.subtotal() || 0) + (this.coordinationPrice || 0) + (this.eventStylingPrice || 0); },
 
-            fmt(n) {
-              return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            },
+        init(jsonSelector){
+          const el = document.querySelector(jsonSelector || '#pkg-config-create');
+          const cfg = el ? JSON.parse(el.textContent || '{}') : {};
 
-            has(id) {
-              id = Number(id);
-              return this.selected.findIndex(x => Number(x.id) === id) !== -1;
-            },
+          this.names      = cfg.names      || {};
+          this.categories = cfg.categories || {};
+          this.prices     = cfg.prices     || {};
+          this.notes      = cfg.notes      || {};
 
-            toggle(id) {
-              id = Number(id);
-              const i = this.selected.findIndex(x => Number(x.id) === id);
-              if (i > -1) {
-                this.selected.splice(i, 1);
-              } else {
-                this.selected.push({ id: id });
-              }
-              this.$nextTick(() => this.reflowAllTextareas());
-            },
+          const raw = Array.isArray(cfg.initialInclusions) ? cfg.initialInclusions : Object.values(cfg.initialInclusions || []);
+          this.selected = raw.map(v => {
+            if (typeof v === 'object' && v !== null && 'id' in v) return { id: Number(v.id) };
+            return { id: Number(v) };
+          }).filter(r => Number.isFinite(r.id));
 
-            remove(id) {
-              id = Number(id);
-              const i = this.selected.findIndex(x => Number(x.id) === id);
-              if (i > -1) this.selected.splice(i, 1);
-              this.$nextTick(() => this.reflowAllTextareas());
-            },
+          const d = cfg.defaults || {};
+          this.coordinationPrice = Number(d.coordinationPrice ?? 25000);
+          this.eventStylingPrice = Number(d.eventStylingPrice ?? 55000);
+          this.packagePrice      = Number(d.packagePrice ?? 0);
+          this.autoCalc          = !!d.autoCalc;
 
-            subtotal() {
-              return this.selected.reduce((sum, row) => {
-                const p = Number(this.prices[row.id] ?? 0);
-                return sum + (isNaN(p) ? 0 : p);
-              }, 0);
-            },
+          this.$nextTick(() => {
+            if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2));
+          });
+        },
+      }));
 
-            grandTotal() {
-              return (this.subtotal() || 0) + (this.coordinationPrice || 0) + (this.eventStylingPrice || 0);
-            },
-
-            // Keep for any auto-resize you still want elsewhere
-            autoResize(el) {
-              el.style.height = 'auto';
-              el.style.overflow = 'hidden';
-              el.style.height = el.scrollHeight + 'px';
-            },
-
-            reflowAllTextareas() {
-              this.$root.querySelectorAll('textarea[data-autoresize]').forEach(t => this.autoResize(t));
-            },
-
-            init() {
-              this.$nextTick(() => {
-                this.reflowAllTextareas();
-                if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2));
-              });
-            }
-          }));
-        });
+      Alpine.data('galleryUploader', () => ({
+        newItems: [],
+        handleFiles(e){
+          const files = Array.from(e.target.files || []);
+          files.forEach((f, idx) => {
+            const url = URL.createObjectURL(f);
+            this.newItems.push({ key: Date.now()+'-'+idx, file: f, url, alt: '' });
+          });
+        },
+        removeNew(i){
+          const item = this.newItems[i];
+          if (item && item.url) URL.revokeObjectURL(item.url);
+          this.newItems.splice(i, 1);
+        }
+      }));
+    });
     </script>
 </x-admin.layouts.management>

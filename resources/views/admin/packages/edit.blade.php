@@ -20,20 +20,41 @@
     'isActive' => (bool) old('is_active', $package->is_active),
     ],
     ];
+
+    $existingImages = $package->images->map(fn($img) => [
+    'id' => (int) $img->id,
+    'url' => $img->url,
+    'alt' => (string) ($img->alt ?? ''),
+    ])->values();
     @endphp
 
-    <script type="application/json" id="pkg-config">
-        {!! json_encode($config) !!}
+    <script type="application/json" id="pkg-config-edit">
+        {!! json_encode($config, JSON_UNESCAPED_UNICODE) !!}
+    </script>
+    <script type="application/json" id="pkg-images-json">
+        {!! $existingImages->toJson(JSON_UNESCAPED_UNICODE) !!}
     </script>
 
-    <div class="bg-white rounded-lg shadow-sm p-6 space-y-6 max-w-3xl" x-data="packagePricing()" x-init="init()"
-        x-cloak>
+    <div class="bg-white rounded-lg shadow-sm p-6 space-y-6 max-w-3xl" x-data="packagePricing()"
+        x-init="init('#pkg-config-edit')" x-cloak>
         <h3 class="text-lg font-semibold">Edit Package</h3>
 
-        <form method="POST" action="{{ route('admin.management.packages.update', $package) }}" class="space-y-6">
+        <form method="POST" action="{{ route('admin.management.packages.update', $package) }}" class="space-y-6"
+            enctype="multipart/form-data" x-data="{ formError: '', galleryValid: true }" @submit.prevent="
+            formError = '';
+            const comp = $refs.gallery && $refs.gallery.__x ? $refs.gallery.__x.$data : null;
+            const ok = comp ? comp.ensureMin() : true;
+            galleryValid = ok;
+            if (ok) { $el.submit(); }
+            else {
+            formError = comp?.error || 'Please keep at least 4 images.';
+            $nextTick(() => document.getElementById('gallery-error')?.scrollIntoView({behavior:'smooth'}));
+            }
+        ">
             @csrf
             @method('PUT')
 
+            {{-- Basic info --}}
             <div>
                 <x-input-label for="name" value="Package Name" />
                 <x-text-input id="name" name="name" type="text" class="mt-1 block w-full"
@@ -48,12 +69,7 @@
                 <x-input-error :messages="$errors->get('description')" class="mt-2" />
             </div>
 
-            <style>
-                [x-cloak] {
-                    display: none !important
-                }
-            </style>
-
+            {{-- Inclusions --}}
             <div class="space-y-4">
                 <h4 class="font-semibold text-base">Inclusions</h4>
 
@@ -86,7 +102,6 @@
                                         <div class="text-[11px] text-gray-500" x-show="categories[row.id]"
                                             x-text="`• ${categories[row.id]}`"></div>
                                     </div>
-
                                     <div class="flex items-center gap-3 shrink-0">
                                         <span class="px-2 py-1 rounded text-xs bg-emerald-100 text-emerald-800">
                                             ₱<span x-text="fmt(prices[row.id] ?? 0)"></span>
@@ -96,6 +111,7 @@
                                     </div>
                                 </div>
 
+                                {{-- read-only notes from Inclusion model --}}
                                 <template x-if="notes[row.id]">
                                     <div
                                         class="mt-2 text-xs text-gray-700 whitespace-pre-line border rounded px-3 py-2 bg-white/60">
@@ -103,6 +119,7 @@
                                     </div>
                                 </template>
 
+                                {{-- submit inclusion id only --}}
                                 <input type="hidden" :name="`inclusions[${idx}][id]`" :value="row.id">
                             </div>
                         </template>
@@ -118,6 +135,7 @@
                 <x-input-error :messages="$errors->get('inclusions.*.id')" />
             </div>
 
+            {{-- Coordination / Event Styling --}}
             <div>
                 <x-input-label>Coordination</x-input-label>
                 <textarea name="coordination" rows="3" class="w-full border rounded px-3 py-2" x-model="coordination"
@@ -149,6 +167,7 @@ Aisle decor"></textarea>
                 </div>
             </div>
 
+            {{-- Package Price --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <x-input-label for="price" value="Package Price" />
@@ -168,98 +187,265 @@ Aisle decor"></textarea>
                 </div>
             </div>
 
-            <div x-effect="if (autoCalc) { packagePrice = Number(grandTotal().toFixed(2)); }"></div>
+            {{-- keep price synced when selections change --}}
             <div style="display:none"
                 x-init="$watch(() => selected.map(r => r.id).join(','), () => { if (autoCalc) packagePrice = Number(grandTotal().toFixed(2)); })">
+            </div>
+            <div x-effect="if (autoCalc) { packagePrice = Number(grandTotal().toFixed(2)); }"></div>
+
+            {{-- GALLERY with instant remove and min-4 client validation --}}
+            <div x-data="galleryManager()" x-init="init('#pkg-images-json')" x-ref="gallery"
+                x-effect="$root.closest('form')?.__x?.$data && ($root.closest('form').__x.$data.galleryValid = isValid)">
+                <h4 class="font-semibold text-base">Gallery</h4>
+
+                {{-- Existing images --}}
+                <template x-if="existing.length">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <template x-for="(img, i) in existing" :key="img.id">
+                            <div class="relative border rounded-lg p-2" x-show="!img.removed">
+                                <div class="relative w-full aspect-[4/3] overflow-hidden rounded-md">
+                                    <img :src="img.url" :alt="img.alt || 'Image'"
+                                        class="absolute inset-0 w-full h-full object-cover">
+                                </div>
+
+                                <input type="text" class="mt-2 w-full text-xs border rounded px-2 py-1"
+                                    placeholder="Alt/Caption" x-model="img.alt" :name="`existing[${img.id}]`">
+
+                                <button type="button"
+                                    class="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded"
+                                    @click="removeExisting(i)">
+                                    Remove
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                <template x-if="!existing.length">
+                    <div class="text-sm text-gray-500">No images yet. Add at least 4 below.</div>
+                </template>
+
+                {{-- Hidden inputs for removed existing image IDs --}}
+                <template x-for="rid in removedIds" :key="`rid-${rid}`">
+                    <input type="hidden" name="remove_image_ids[]" :value="rid">
+                </template>
+
+                {{-- New uploads --}}
+                <div class="space-y-2">
+                    <x-input-label value="Add Images (you can select multiple; min 4 total after save)" />
+                    <input type="file" name="images[]" accept="image/*" multiple class="block"
+                        @change="handleFiles($event)">
+
+                    <x-input-error :messages="$errors->get('images')" />
+                    <x-input-error :messages="$errors->get('images.*')" />
+
+                    <template x-if="newItems.length">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <template x-for="(img, i) in newItems" :key="img.key">
+                                <div class="relative group border rounded-lg p-2">
+                                    <div class="relative w-full aspect-[4/3] overflow-hidden rounded-md">
+                                        <img :src="img.url" alt="" class="absolute inset-0 w-full h-full object-cover">
+                                    </div>
+                                    <input type="text" class="mt-2 w-full text-xs border rounded px-2 py-1"
+                                        placeholder="Alt/Caption" x-model="img.alt">
+                                    <button type="button"
+                                        class="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100"
+                                        @click="removeNew(i)">
+                                        Remove
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    {{-- Hidden alts for new uploads (aligned with files[]) --}}
+                    <template x-for="(img, i) in newItems" :key="`alt-${img.key}`">
+                        <input type="hidden" :name="`images_alt[${i}]`" x-model="img.alt">
+                    </template>
+                </div>
+
             </div>
 
             <div class="flex justify-end gap-2">
                 <a href="{{ route('admin.management.packages.index') }}" class="px-3 py-2 border rounded">Cancel</a>
-                <button class="px-4 py-2 bg-gray-800 text-white rounded">Update Package</button>
+                <button type="submit" class="px-4 py-2 rounded text-white"
+                    :class="galleryValid ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-400 cursor-not-allowed'"
+                    :disabled="!galleryValid">
+                    Update Package
+                </button>
             </div>
         </form>
     </div>
 
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('packagePricing', () => ({
-                names: {},
-                categories: {},
-                prices: {},
-                notes: {},
-                selected: [],
-                coordinationPrice: 0,
-                eventStylingPrice: 0,
-                packagePrice: 0,
-                autoCalc: true,
-                coordination: '',
-                eventStylingText: '',
-                isActive: true,
+        // Pricing and inclusions
+        Alpine.data('packagePricing', () => ({
+            names: {}, categories: {}, prices: {}, notes: {},
+            selected: [],
+            coordinationPrice: 0,
+            eventStylingPrice: 0,
+            packagePrice: 0,
+            autoCalc: true,
+            coordination: '',
+            eventStylingText: '',
+            isActive: true,
 
-                fmt(n) {
-                    return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                },
+            fmt(n){
+                return Number(n || 0).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
 
-                has(id) {
-                    id = Number(id);
-                    return this.selected.findIndex(x => Number(x.id) === id) !== -1;
-                },
+            has(id){
+                id = Number(id);
+                return this.selected.findIndex(x => Number(x.id) === id) !== -1;
+            },
+            toggle(id){
+                id = Number(id);
+                const i = this.selected.findIndex(x => Number(x.id) === id);
+                if (i > -1) this.selected.splice(i, 1);
+                else this.selected.push({ id });
+                this.$nextTick(() => {
+                    if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2));
+                });
+            },
+            remove(id){
+                id = Number(id);
+                const i = this.selected.findIndex(x => Number(x.id) === id);
+                if (i > -1) this.selected.splice(i, 1);
+                this.$nextTick(() => {
+                    if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2));
+                });
+            },
 
-                toggle(id) {
-                    id = Number(id);
-                    const i = this.selected.findIndex(x => Number(x.id) === id);
-                    if (i > -1) {
-                        this.selected.splice(i, 1);
-                    } else {
-                        this.selected.push({ id: id });
-                    }
-                    this.$nextTick(() => { if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2)); });
-                },
+            subtotal(){
+                return this.selected.reduce((sum, row) => {
+                    const p = Number(this.prices[row.id] ?? 0);
+                    return sum + (isNaN(p) ? 0 : p);
+                }, 0);
+            },
+            grandTotal(){
+                return (this.subtotal() || 0) + (this.coordinationPrice || 0) + (this.eventStylingPrice || 0);
+            },
 
-                remove(id) {
-                    id = Number(id);
-                    const i = this.selected.findIndex(x => Number(x.id) === id);
-                    if (i > -1) this.selected.splice(i, 1);
-                    this.$nextTick(() => { if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2)); });
-                },
+            init(jsonSelector){
+                const cfgEl = document.querySelector(jsonSelector || '#pkg-config-edit');
+                const cfg = cfgEl ? JSON.parse(cfgEl.textContent || '{}') : {};
 
-                subtotal() {
-                    return this.selected.reduce((sum, row) => {
-                        const p = Number(this.prices[row.id] ?? 0);
-                        return sum + (isNaN(p) ? 0 : p);
-                    }, 0);
-                },
+                this.names      = cfg.names      || {};
+                this.categories = cfg.categories || {};
+                this.prices     = cfg.prices     || {};
+                this.notes      = cfg.notes      || {};
 
-                grandTotal() {
-                    return (this.subtotal() || 0) + (this.coordinationPrice || 0) + (this.eventStylingPrice || 0);
-                },
+                const raw = Array.isArray(cfg.initialInclusions)
+                    ? cfg.initialInclusions
+                    : Object.values(cfg.initialInclusions || []);
+                this.selected = raw.map(v => {
+                    if (typeof v === 'object' && v !== null && 'id' in v) return { id: Number(v.id) };
+                    return { id: Number(v) };
+                }).filter(r => Number.isFinite(r.id));
 
-                init() {
-                    const cfgEl = document.getElementById('pkg-config');
-                    const cfg = cfgEl ? JSON.parse(cfgEl.textContent) : {};
+                const d = cfg.defaults || {};
+                this.coordinationPrice = Number(d.coordinationPrice ?? 25000);
+                this.eventStylingPrice = Number(d.eventStylingPrice ?? 55000);
+                this.packagePrice      = Number(d.packagePrice ?? 0);
+                this.autoCalc          = !!d.autoCalc;
+                this.coordination      = d.coordination ?? '';
+                this.eventStylingText  = d.eventStylingText ?? '';
+                this.isActive          = !!d.isActive;
 
-                    this.names      = cfg.names      || {};
-                    this.categories = cfg.categories || {};
-                    this.prices     = cfg.prices     || {};
-                    this.notes      = cfg.notes      || {};
+                this.$watch('coordinationPrice', () => {
+                    if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2));
+                });
+                this.$watch('eventStylingPrice', () => {
+                    if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2));
+                });
+                this.$watch('autoCalc', () => {
+                    if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2));
+                });
 
-                    const initSel = Array.isArray(cfg.initialInclusions) ? cfg.initialInclusions : [];
-                    this.selected = initSel.map(v => (typeof v === 'object' && v !== null) ? { id: Number(v.id) } : { id: Number(v) });
+                this.$nextTick(() => {
+                    if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2));
+                });
+            },
+        }));
 
-                    const d = cfg.defaults || {};
-                    this.coordinationPrice = Number(d.coordinationPrice ?? 25000);
-                    this.eventStylingPrice = Number(d.eventStylingPrice ?? 55000);
-                    this.packagePrice      = Number(d.packagePrice ?? 0);
-                    this.autoCalc          = !!d.autoCalc;
-                    this.coordination      = d.coordination ?? '';
-                    this.eventStylingText  = d.eventStylingText ?? '';
-                    this.isActive          = !!d.isActive;
+        // Gallery manager: instant remove + min-4 validation
+        Alpine.data('galleryManager', () => ({
+            existing: [],   
+            newItems: [],      
+            removedIds: [],    
+            error: '',
 
-                    this.$watch('coordinationPrice', () => { if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2)); });
-                    this.$watch('eventStylingPrice', () => { if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2)); });
-                    this.$watch('autoCalc', () => { if (this.autoCalc) this.packagePrice = Number(this.grandTotal().toFixed(2)); });
-                },
-            }));
-        });
+            init(jsonSelector){
+                const el = document.querySelector(jsonSelector || '#pkg-images-json');
+                let arr = [];
+                try { arr = JSON.parse(el?.textContent || '[]') || []; } catch(e) { arr = []; }
+                this.existing = arr.map(x => ({
+                    id: Number(x.id),
+                    url: x.url,
+                    alt: x.alt || '',
+                    removed: false
+                }));
+            },
+
+            handleFiles(e){
+                const files = Array.from(e.target.files || []);
+                files.forEach((f, idx) => {
+                    const url = URL.createObjectURL(f);
+                    this.newItems.push({
+                        key: `${Date.now()}-${idx}-${Math.random().toString(36).slice(2)}`,
+                        file: f,
+                        url,
+                        alt: ''
+                    });
+                });
+                if (this.totalCount() >= 4) this.error = '';
+            },
+
+            removeExisting(index){
+                const img = this.existing[index];
+                if (!img) return;
+                img.removed = true;
+                if (!this.removedIds.includes(img.id)) this.removedIds.push(img.id);
+                this.error = this.totalCount() < 4
+                    ? 'Please keep at least 4 images in total (existing minus removed plus new).'
+                    : '';
+            },
+
+            removeNew(index){
+                const item = this.newItems[index];
+                if (item?.url) URL.revokeObjectURL(item.url);
+                this.newItems.splice(index, 1);
+                this.error = this.totalCount() < 4
+                    ? 'Please keep at least 4 images in total (existing minus removed plus new).'
+                    : '';
+            },
+
+            totalCount(){
+                const remainingExisting = this.existing.filter(x => !x.removed).length;
+                return remainingExisting + this.newItems.length;
+            },
+
+            ensureMin(){
+                const ok = this.totalCount() >= 4;
+                this.error = ok ? '' : 'Please keep at least 4 images in total (existing minus removed plus new).';
+                return ok;
+            },
+
+            get isValid(){
+                return this.totalCount() >= 4;
+            },
+
+
+        }));
+    });
     </script>
 </x-admin.layouts.management>

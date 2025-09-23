@@ -196,138 +196,174 @@
 
                 @php
                 $pal = [
-                ['bg' => 'bg-emerald-50', 'border' => 'border-emerald-200', 'chip' => 'bg-emerald-100
-                text-emerald-800'],
-                ['bg' => 'bg-sky-50', 'border' => 'border-sky-200', 'chip' => 'bg-sky-100 text-sky-800'],
-                ['bg' => 'bg-violet-50', 'border' => 'border-violet-200', 'chip' => 'bg-violet-100 text-violet-800'],
-                ['bg' => 'bg-amber-50', 'border' => 'border-amber-200', 'chip' => 'bg-amber-100 text-amber-800'],
+                ['grad' => 'from-emerald-700 to-emerald-900','ring' => 'ring-emerald-700/40','pill' => 'bg-emerald-800
+                text-emerald-100','price' => 'text-emerald-900'],
+                ['grad' => 'from-sky-700 to-sky-900','ring' => 'ring-sky-700/40','pill' => 'bg-sky-800
+                text-sky-100','price' => 'text-sky-900'],
+                ['grad' => 'from-violet-700 to-violet-900','ring' => 'ring-violet-700/40','pill' => 'bg-violet-800
+                text-violet-100','price' => 'text-violet-900'],
+                ['grad' => 'from-amber-700 to-amber-900','ring' => 'ring-amber-700/40','pill' => 'bg-amber-800
+                text-amber-100','price' => 'text-amber-900'],
                 ];
                 @endphp
 
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div class="space-y-6">
                     @foreach($packages as $idx => $p)
                     @php
                     $c = $pal[$idx % count($pal)];
-                    $vendors = $p->vendors ?? collect();
                     $incs = $p->inclusions ?? collect();
                     $sty = is_array($p->event_styling ?? null) ? $p->event_styling : [];
-                    $price = $p->price ?? $p->price ?? null;
-                    @endphp
+                    $price = $p->price ?? null;
 
-                    <div class="rounded-lg border {{ $c['border'] }} {{ $c['bg'] }} p-4 flex flex-col">
-                        <div class="flex items-start justify-between gap-3">
-                            <div>
-                                <div class="text-2xl font-semibold">{{ $p->name }}</div>
-                                @if(!is_null($price))
-                                <div class="text-gray-700 font-medium">₱{{ number_format($price, 2) }}</div>
-                                @endif
-                            </div>
-                            <span class="px-2 py-1 font-medium rounded text-sm {{ $c['chip'] }}">
-                                {{ $p->is_active ? 'Active' : 'Inactive' }}
-                            </span>
-                        </div>
+                    // Build 4 gallery images from DB with placeholders fallback
+                    $g = [];
+                    $dbImgs = $p->images ?? collect();
+                    for ($i = 0; $i < 4; $i++) { $img=$dbImgs[$i] ?? null; $g[$i]=[ 'url'=> $img?->url ?:
+                        "https://picsum.photos/seed/pkg-{$p->id}-{$i}/960/640",
+                        'alt' => $img?->alt ?: "Package image",
+                        ];
+                        }
+                        @endphp
 
-                        @if($p->description)
-                        <p class="text-sm text-gray-600 mt-2">{{ Str::limit($p->description, 120) }}</p>
-                        @endif
-
-                        <div class="mt-2 text-sm text-gray-700">
-                            <div>Coordination: ₱{{ number_format($p->coordination_price ?? 25000, 2) }}</div>
-                            <div>Event Styling: ₱{{ number_format($p->event_styling_price ?? 55000, 2) }}</div>
-                        </div>
-
-                        <div class="mt-3">
-                            <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Inclusions</div>
-
-                            @if($incs->isEmpty())
-                            <div class="text-sm text-gray-500">—</div>
-                            @else
-                            <ul class="text-sm text-gray-800 space-y-2">
-                                @foreach($incs as $inc)
-                                <li class="border rounded p-2 bg-white/40">
-                                    <div class="font-medium">
-                                        {{ $inc->name }}
-                                        @if($inc->category)
-                                        <span class="text-xs text-gray-500">• {{ $inc->category }}</span>
+                        <div
+                            class="rounded-2xl overflow-hidden bg-white ring-1 {{ $c['ring'] }} shadow-sm hover:shadow-md transition">
+                            {{-- Make children stretch to same height on both columns --}}
+                            <div class="p-4 grid gap-4 lg:grid-cols-3 items-stretch">
+                                {{-- LEFT: Package content --}}
+                                <div class="space-y-4 flex flex-col">
+                                    <div class="p-4 bg-gradient-to-br {{ $c['grad'] }} text-white rounded-t-lg">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <div class="text-xl font-semibold tracking-tight">{{ $p->name }}</div>
+                                                @if(!is_null($price))
+                                                <div class="mt-0.5 text-lg font-bold">₱{{ number_format($p->price, 2) }}
+                                                </div>
+                                                @endif
+                                            </div>
+                                            <span
+                                                class="px-2 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur">
+                                                {{ $p->is_active ? 'Active' : 'Inactive' }}
+                                            </span>
+                                        </div>
+                                        @if($p->description)
+                                        <p class="mt-2 text-white/90 text-sm leading-snug">{{
+                                            Str::limit($p->description, 140) }}</p>
                                         @endif
                                     </div>
 
-                                    @php
-                                    $notes = trim((string) ($inc->pivot->notes ?? ''));
-                                    @endphp
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                            <div class="text-[11px] uppercase tracking-wide text-gray-500">Coordination
+                                            </div>
+                                            <div class="mt-1 font-semibold {{ $c['price'] }}">₱{{
+                                                number_format($p->coordination_price ?? 25000, 2) }}</div>
+                                        </div>
+                                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                            <div class="text-[11px] uppercase tracking-wide text-gray-500">Event Styling
+                                            </div>
+                                            <div class="mt-1 font-semibold {{ $c['price'] }}">₱{{
+                                                number_format($p->event_styling_price ?? 55000, 2) }}</div>
+                                        </div>
+                                    </div>
 
-                                    @if($notes !== '')
-                                    <ul class="mt-1 text-xs text-gray-700 leading-tight list-disc pl-5 space-y-0.5">
-                                        @foreach(preg_split('/\r\n|\r|\n/', $notes) as $line)
-                                        @if(trim($line) !== '')
-                                        <li>{{ $line }}</li>
+                                    <div>
+                                        <div class="text-xs uppercase tracking-wide text-gray-500 mb-2">Inclusions</div>
+                                        @if($incs->isEmpty())
+                                        <div class="text-sm text-gray-500">—</div>
+                                        @else
+                                        <ul class="space-y-2">
+                                            @foreach($incs as $inc)
+                                            @php
+                                            $incNotes = trim((string)($inc->notes ?? ''));
+                                            $noteLines = $incNotes !== '' ? preg_split('/\r\n|\r|\n/', $incNotes) : [];
+                                            @endphp
+                                            <li class="rounded-lg border border-gray-200 bg-white p-3">
+                                                <div class="font-medium text-gray-900">
+                                                    {{ $inc->name }}
+                                                    @if($inc->category)
+                                                    <span
+                                                        class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] {{ $c['pill'] }} ring-1 ring-black/5">
+                                                        {{ $inc->category }}
+                                                    </span>
+                                                    @endif
+                                                </div>
+                                                @if(!empty($noteLines))
+                                                <ul class="mt-1.5 text-xs text-gray-700 list-disc pl-5 space-y-0.5">
+                                                    @foreach($noteLines as $line)
+                                                    @if(trim($line) !== '')
+                                                    <li>{{ $line }}</li>
+                                                    @endif
+                                                    @endforeach
+                                                </ul>
+                                                @endif
+                                            </li>
+                                            @endforeach
+                                        </ul>
                                         @endif
-                                        @endforeach
-                                    </ul>
-                                    @endif
-                                </li>
-                                @endforeach
-                            </ul>
-                            @endif
+                                    </div>
+
+                                    <div>
+                                        <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Event Styling
+                                        </div>
+                                        <div class="mt-2 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                                            @if(empty($sty))
+                                            <div class="text-sm text-gray-500">—</div>
+                                            @else
+                                            <ul class="text-sm text-gray-700 list-disc pl-5 space-y-0.5">
+                                                @foreach($sty as $item)
+                                                @if(trim($item) !== '')
+                                                <li>{{ $item }}</li>
+                                                @endif
+                                                @endforeach
+                                            </ul>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Coordination
+                                        </div>
+                                        <div class="text-sm text-gray-700">{{ Str::limit($p->coordination ?? '—', 120)
+                                            }}</div>
+                                    </div>
+
+                                    <div class="pt-1 mt-auto">
+                                        <a href="{{ route('customer.events.create', ['package_id' => $p->id]) }}"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-gray-900 text-white px-5 py-2 text-sm hover:bg-gray-800 transition focus:outline-none focus:ring-2 focus:ring-gray-400">
+                                            Book this package
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {{-- RIGHT: Gallery fills height using fixed rows --}}
+                                <div class="lg:col-span-2">
+                                    <div class="grid grid-cols-2 gap-2 h-full">
+                                        {{-- Hero (top wide) --}}
+                                        <figure class="col-span-2 aspect-[16/9] rounded-xl overflow-hidden relative">
+                                            <img src="{{ $g[0]['url'] }}" alt="{{ $g[0]['alt'] }}"
+                                                class="w-full h-full object-cover block" loading="lazy">
+                                        </figure>
+
+                                        {{-- Two mediums side-by-side --}}
+                                        <figure class="aspect-[4/3] rounded-xl overflow-hidden relative">
+                                            <img src="{{ $g[1]['url'] }}" alt="{{ $g[1]['alt'] }}"
+                                                class="w-full h-full object-cover block" loading="lazy">
+                                        </figure>
+                                        <figure class="aspect-[4/3] rounded-xl overflow-hidden relative">
+                                            <img src="{{ $g[2]['url'] }}" alt="{{ $g[2]['alt'] }}"
+                                                class="w-full h-full object-cover block" loading="lazy">
+                                        </figure>
+
+                                        {{-- Footer wide --}}
+                                        <figure class="col-span-2 aspect-[16/6] rounded-xl overflow-hidden relative">
+                                            <img src="{{ $g[3]['url'] }}" alt="{{ $g[3]['alt'] }}"
+                                                class="w-full h-full object-cover block" loading="lazy">
+                                        </figure>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-
-                        {{-- Coordination (single line preview) --}}
-                        <div class="mt-3">
-                            <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Coordination</div>
-                            <div class="text-sm text-gray-700">{{ Str::limit($p->coordination ?? '—', 110) }}</div>
-                        </div>
-
-
-                        {{-- Event Styling (list ALL items) --}}
-                        <div class="mt-3">
-                            <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Event Styling</div>
-                            @if(empty($sty))
-                            <div class="text-sm text-gray-500">—</div>
-                            @else
-                            <ul class="text-sm text-gray-700 list-disc pl-5 space-y-0.5">
-                                @foreach($sty as $item)
-                                @if(trim($item) !== '')
-                                <li>{{ $item }}</li>
-                                @endif
-                                @endforeach
-                            </ul>
-                            @endif
-                        </div>
-
-                        {{-- Vendors / Add-ons --}}
-                        {{-- <div class="mt-3">
-                            <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Vendors</div>
-                            @if($vendors->isEmpty())
-                            <div class="text-sm text-gray-500">—</div>
-                            @else
-                            @php
-                            $show = $vendors->take(3);
-                            $more = max(0, $vendors->count() - $show->count());
-                            @endphp
-                            <ul class="text-sm text-gray-700 list-disc pl-5 space-y-0.5">
-                                @foreach($show as $v)
-                                <li>{{ $v->name }} @if($v->category) <span class="text-gray-500">• {{ $v->category
-                                        }}</span> @endif</li>
-                                @endforeach
-                            </ul>
-                            @if($more > 0)
-                            <div class="text-xs text-gray-500 mt-1">+ {{ $more }} more</div>
-                            @endif
-                            @endif
-                        </div> --}}
-
-
-                        <div class="mt-4 flex items-center justify-between">
-                            {{-- <span class="text-xs text-gray-500">ID: {{ $p->id }}</span> --}}
-
-                            <a href="{{ route('customer.events.create', ['package_id' => $p->id]) }}"
-                                class="bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-                                Book this package
-                            </a>
-                        </div>
-                    </div>
-                    @endforeach
+                        @endforeach
                 </div>
             </div>
             @endif

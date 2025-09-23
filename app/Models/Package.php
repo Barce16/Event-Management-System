@@ -42,6 +42,11 @@ class Package extends Model
             ->withTimestamps();
     }
 
+    public function images()
+    {
+        return $this->hasMany(PackageImage::class)->orderBy('sort');
+    }
+
     protected $casts = [
         'is_active'     => 'boolean',
         'event_styling' => 'array',

@@ -27,9 +27,8 @@ class Event extends Model
 
     public function customer()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Customer::class, 'customer_id');
     }
-
     public function package()
     {
         return $this->belongsTo(Package::class);
@@ -54,8 +53,8 @@ class Event extends Model
 
     public function inclusions()
     {
-        return $this->belongsToMany(Inclusion::class)
-            ->withPivot(['price'])
+        return $this->belongsToMany(Inclusion::class, 'event_inclusion')
+            ->withPivot('price_snapshot')
             ->withTimestamps();
     }
 }

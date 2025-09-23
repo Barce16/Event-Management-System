@@ -19,9 +19,8 @@
                     <tr>
                         <th class="text-left py-2">Name</th>
                         <th class="text-left py-2">Price</th>
-                        <th class="text-left py-2">Vendors</th>
                         <th class="text-left py-2">Status</th>
-                        <th class="text-left py-2">Actions</th>
+                        <th class="text-center py-2">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,16 +32,13 @@
                         </td>
                         <td class="py-2">₱{{ number_format($p->price, 2) }}</td>
                         <td class="py-2">
-                            {{ $p->vendors()->count() }} vendors
-                        </td>
-                        <td class="py-2">
                             @php $badge = $p->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
                             @endphp
                             <span class="px-2 py-1 rounded text-xs {{ $badge }}">
                                 {{ $p->is_active ? 'Active' : 'Inactive' }}
                             </span>
                         </td>
-                        <td class="py-2 space-x-2">
+                        <td class="py-2 space-x-2 flex justify-center items-center">
                             <a href="{{ route('admin.management.packages.show', $p) }}" class="underline">View</a>
                             <a href="{{ route('admin.management.packages.edit', $p) }}" class="underline">Edit</a>
                             <form action="{{ route('admin.management.packages.toggle', $p) }}" method="POST"

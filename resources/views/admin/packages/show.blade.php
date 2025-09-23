@@ -1,5 +1,33 @@
 <x-admin.layouts.management>
-    <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+    @php
+    // Event styling: accept array or newline string
+    $styRaw = $package->event_styling;
+    $sty = is_array($styRaw)
+    ? array_values(array_filter($styRaw, fn($s) => trim((string)$s) !== ''))
+    : collect(preg_split('/\r\n|\r|\n/', (string) $styRaw, -1, PREG_SPLIT_NO_EMPTY))
+    ->map(fn($s) => trim($s))->filter()->values()->all();
+
+    // Package images (ordered by sort if relation is defined that way)
+    $imgs = $package->images ?? collect(); // expects hasMany->orderBy('sort') in model
+    // 4 fallbacks if fewer than 4 images exist
+    $fallbacks = [
+    "https://picsum.photos/seed/pkg-{$package->id}-1/960/540",
+    "https://picsum.photos/seed/pkg-{$package->id}-2/480/360",
+    "https://picsum.photos/seed/pkg-{$package->id}-3/480/360",
+    "https://picsum.photos/seed/pkg-{$package->id}-4/960/360",
+    ];
+
+    $img1 = $imgs[0]->url ?? $fallbacks[0];
+    $alt1 = $imgs[0]->alt ?? 'Package image';
+    $img2 = $imgs[1]->url ?? $fallbacks[1];
+    $alt2 = $imgs[1]->alt ?? 'Package image';
+    $img3 = $imgs[2]->url ?? $fallbacks[2];
+    $alt3 = $imgs[2]->alt ?? 'Package image';
+    $img4 = $imgs[3]->url ?? $fallbacks[3];
+    $alt4 = $imgs[3]->alt ?? 'Package image';
+    @endphp
+
+    <div class="bg-white rounded-lg shadow-sm p-6 space-y-6">
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="text-lg font-semibold">{{ $package->name }}</h3>
@@ -11,10 +39,45 @@
             </a>
         </div>
 
+        {{-- Gallery (hero + 3 tiles) --}}
+        <div class="grid grid-cols-2 gap-3">
+            <figure class="col-span-2 rounded-xl overflow-hidden shadow-sm relative">
+                <div class="relative w-full aspect-[16/9]">
+                    <img src="{{ $img1 }}" alt="{{ $alt1 }}" class="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy" decoding="async">
+                </div>
+                <figcaption class="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent">
+                </figcaption>
+            </figure>
+
+            <figure class="rounded-xl overflow-hidden shadow-sm relative">
+                <div class="relative w-full aspect-[4/3]">
+                    <img src="{{ $img2 }}" alt="{{ $alt2 }}" class="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy" decoding="async">
+                </div>
+            </figure>
+            <figure class="rounded-xl overflow-hidden shadow-sm relative">
+                <div class="relative w-full aspect-[4/3]">
+                    <img src="{{ $img3 }}" alt="{{ $alt3 }}" class="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy" decoding="async">
+                </div>
+            </figure>
+
+            <figure class="col-span-2 rounded-xl overflow-hidden shadow-sm relative">
+                <div class="relative w-full aspect-[16/7]">
+                    <img src="{{ $img4 }}" alt="{{ $alt4 }}" class="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy" decoding="async">
+                </div>
+            </figure>
+        </div>
+
+        {{-- Description --}}
         <div>
             <div class="text-gray-600 text-sm mb-1">Description</div>
             <div class="whitespace-pre-line">{{ $package->description ?: '—' }}</div>
         </div>
+
+        {{-- Inclusions (notes now come from Inclusion model, not pivot) --}}
         <div>
             <div class="text-gray-600 text-sm mb-1">Inclusions</div>
 
@@ -23,31 +86,33 @@
             @else
             <ul class="space-y-2">
                 @foreach($package->inclusions as $inc)
+                @php
+                $incNotes = trim((string)($inc->notes ?? ''));
+                $noteLines = $incNotes !== '' ? preg_split('/\r\n|\r|\n/', $incNotes) : [];
+                $noteLines = array_values(array_filter($noteLines, fn($l) => trim($l) !== ''));
+                @endphp
                 <li class="border rounded p-3">
                     <div class="flex items-center justify-between mb-2">
-                        <div class="font-extrabold">
+                        <div class="font-semibold">
                             {{ $inc->name }}
                             @if($inc->category)
-                            <span class="text-xs">• {{ $inc->category }}</span>
+                            <span class="text-xs text-gray-500">• {{ $inc->category }}</span>
                             @endif
                         </div>
 
-                        @if(!empty($inc->price))
+                        @if(!is_null($inc->price))
                         <div class="text-base font-medium text-gray-800">
                             ₱{{ number_format($inc->price, 2) }}
                         </div>
                         @endif
                     </div>
 
-                    {{-- Notes --}}
-                    @if($inc->pivot->notes)
-                    <div class="text-sm text-gray-700 leading-tight">
-                        @foreach(preg_split('/\r\n|\r|\n/', $inc->pivot->notes) as $line)
-                        @if(trim($line) !== '')
-                        • {{ $line }}<br>
-                        @endif
+                    @if(!empty($noteLines))
+                    <ul class="text-sm text-gray-700 leading-tight list-disc pl-5 space-y-0.5">
+                        @foreach($noteLines as $line)
+                        <li>{{ $line }}</li>
                         @endforeach
-                    </div>
+                    </ul>
                     @else
                     <div class="text-sm text-gray-500">No notes.</div>
                     @endif
@@ -58,40 +123,38 @@
         </div>
 
         {{-- Coordination --}}
-        <div class="mt-4">
+        <div>
             <div class="text-gray-600 text-sm mb-1">Coordination</div>
             <div class="whitespace-pre-line">{{ $package->coordination ?: '—' }}</div>
         </div>
 
-        {{-- Event Styling --}}
+        {{-- Event Styling (bullet list) --}}
         <div>
             <div class="text-gray-600 text-sm mb-1">Event Styling</div>
-            @if(empty($package->event_styling) || count($package->event_styling) === 0)
+            @if(empty($sty))
             <div class="text-gray-500">No styling details.</div>
             @else
-            <ul class="list-disc pl-5 space-y-1">
-                @foreach($package->event_styling as $item)
+            <ul class="space-y-1">
+                @foreach($sty as $item)
                 <li>{{ $item }}</li>
                 @endforeach
             </ul>
             @endif
         </div>
 
-        <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {{-- Prices --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <div class="text-gray-600 text-sm">Coordination Price</div>
-                <div class="font-medium">
-                    ₱{{ number_format($package->coordination_price ?? 25000, 2) }}
-                </div>
+                <div class="font-medium">₱{{ number_format($package->coordination_price ?? 25000, 2) }}</div>
             </div>
             <div>
                 <div class="text-gray-600 text-sm">Event Styling Price</div>
-                <div class="font-medium">
-                    ₱{{ number_format($package->event_styling_price ?? 55000, 2) }}
-                </div>
+                <div class="font-medium">₱{{ number_format($package->event_styling_price ?? 55000, 2) }}</div>
             </div>
         </div>
 
+        {{-- Status --}}
         <div>
             <div class="text-gray-600 text-sm mb-1">Status</div>
             @php $badge = $package->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'; @endphp
@@ -100,6 +163,7 @@
             </span>
         </div>
 
+        {{-- Events using this package --}}
         <div class="pt-6 border-t">
             <h4 class="text-md font-semibold mb-3">Events</h4>
 
@@ -161,7 +225,6 @@
             </div>
             @endif
         </div>
-
 
         <div class="pt-4 border-t">
             <a href="{{ route('admin.management.packages.index') }}" class="underline">Back to packages</a>

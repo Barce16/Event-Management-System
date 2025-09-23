@@ -9,13 +9,7 @@ class Guest extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = [
-        'event_id',
-        'name',
-        'email',
-        'contact_number',
-        'party_size',
-    ];
+    protected $fillable = ['name', 'email', 'contact_number', 'party_size'];
 
     public function event()
     {
