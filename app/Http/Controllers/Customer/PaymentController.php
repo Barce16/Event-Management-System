@@ -48,6 +48,10 @@ class PaymentController extends Controller
             return back()->with('error', 'Billing information not found for this event.');
         }
 
+        if ($billing->total_amount - $data['amount'] < 0) {
+            return back()->with('error', 'Payment amount exceeds the remaining balance.');
+        }
+
         Payment::create([
             'billing_id' => $billing->id,
             'payment_image' => $filePath,
@@ -57,6 +61,7 @@ class PaymentController extends Controller
             'payment_date' => now(),
         ]);
 
+        // Update the event status if approved
         if ($event->status === 'approved') {
             $event->update([
                 'status' => 'request_meeting',
