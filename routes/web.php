@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
             Route::resource('events', CustomerEventController::class);
             Route::get('customer/events/{event}/payment', [PaymentController::class, 'create'])->name('payments.create');
             Route::post('customer/events/{event}/payment', [PaymentController::class, 'store'])->name('payments.store');
+            Route::get('/payments', [PaymentController::class, 'index'])->name('payment-history');
         });
 
     // ========== STAFF AREA ==========

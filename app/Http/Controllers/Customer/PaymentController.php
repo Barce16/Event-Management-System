@@ -6,9 +6,27 @@ use App\Models\Event;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
+
+    public function index()
+    {
+        $customer = Auth::user()->customer;
+
+        if (!$customer) {
+            return redirect()->route('home')->with('error', 'Customer not found.');
+        }
+
+        $payments = Payment::whereHas('billing.event', function ($query) use ($customer) {
+            $query->where('customer_id', $customer->id);
+        })
+            ->with('billing.event')
+            ->get();
+
+        return view('customers.payments.index', compact('payments'));
+    }
     public function create(Event $event)
     {
         return view('customers.payments.create', compact('event'));
