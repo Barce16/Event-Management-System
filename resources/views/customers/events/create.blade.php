@@ -191,13 +191,15 @@
                             <x-input-error :messages="$errors->get('theme')" class="mt-2" />
                         </div>
 
-                        <div class="md:col-span-2">
+                        <div class="md:col-span-2 relative">
                             <x-input-label for="budget" value="Budget" />
+                            <div class="absolute left-2 top-1/2">
+                                <span class="text-lg text-emerald-700">₱</span>
+                            </div>
                             <x-text-input id="budget" name="budget" type="number" step="0.01" min="0"
-                                class="mt-1 block w-full" value="{{ old('budget') }}" />
+                                class="mt-1 block w-full pl-7" value="{{ old('budget') }}" />
                             <x-input-error :messages="$errors->get('budget')" class="mt-2" />
                         </div>
-
                         <div class="md:col-span-2">
                             <x-input-label for="notes" value="Notes" />
                             <textarea id="notes" name="notes" rows="3"
