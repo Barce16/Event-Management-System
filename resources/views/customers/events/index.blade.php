@@ -37,10 +37,13 @@
                                 </span>
                             </td>
                             <td class="py-2 space-x-2">
-                                <a href="{{ route('customer.events.show',$e) }}"
+                                <a href="{{ route('customer.events.show', $e) }}"
                                     class="px-3 py-1 border rounded">View</a>
-                                <a href="{{ route('customer.events.edit',$e) }}"
+
+                                @if($e->status === 'requested')
+                                <a href="{{ route('customer.events.edit', $e) }}"
                                     class="px-3 py-1 border rounded">Edit</a>
+                                @endif
                             </td>
                         </tr>
                         @empty
@@ -49,6 +52,7 @@
                         </tr>
                         @endforelse
                     </tbody>
+
                 </table>
 
                 <div class="mt-4">{{ $events->links() }}</div>

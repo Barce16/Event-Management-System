@@ -21,9 +21,10 @@ class DashboardController extends Controller
                 'totalCustomers'    => Customer::count(),
                 'paymentsThisMonth' => null,
                 'pendingTasks'      => null,
-                'recentEvents'      => Event::latest('event_date')
+                'recentEvents'      => Event::with(['customer.user'])
+                    ->latest('event_date')
                     ->take(5)
-                    ->get(['id', 'name', 'event_date', 'status', 'venue']),
+                    ->get(['id', 'name', 'event_date', 'status', 'venue', 'customer_id']),
             ];
 
             return view('dashboard', $metrics);

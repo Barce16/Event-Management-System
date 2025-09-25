@@ -9,76 +9,60 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
-            <form method="GET" class="bg-white p-4 rounded shadow-sm grid grid-cols-1 md:grid-cols-8 gap-3">
-                <input type="date" name="from" value="{{ $from }}" class="border rounded px-3 py-2">
-                <input type="date" name="to" value="{{ $to   }}" class="border rounded px-3 py-2">
-                <select name="status" class="border rounded px-3 py-2">
-                    <option value="">All statuses</option>
-                    @foreach(['pending','approved','paid'] as $s)
-                    <option value="{{ $s }}" @selected($status===$s)>{{ ucfirst($s) }}</option>
-                    @endforeach
-                </select>
-                <input type="number" name="staff_id" value="{{ $staffId }}" placeholder="Staff ID"
-                    class="border rounded px-3 py-2">
-                <div class="md:col-span-4 flex justify-end">
-                    <a href="{{ route('admin.payroll.lines') }}" class="px-3 py-2 border rounded mr-2">Reset</a>
-                    <button class="px-4 py-2 bg-gray-800 text-white rounded">Apply</button>
-                </div>
-            </form>
+            <div class="bg-white p-4 rounded shadow-sm">
+                <div class="mb-6">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-semibold text-lg text-gray-800 border-b pb-3">
+                            Event: {{ $event->name }} ({{ \Carbon\Carbon::parse($event->event_date)->format('F j, Y')
+                            }})
+                        </h3>
+                    </div>
 
-            <form method="POST" action="{{ route('admin.payroll.mark') }}" class="bg-white p-4 rounded shadow-sm">
-                @csrf @method('PATCH')
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
+                    <table class="min-w-full mt-4 text-sm">
                         <thead class="text-gray-600">
                             <tr>
-                                <th class="py-2"><input type="checkbox"
-                                        onclick="document.querySelectorAll('.chk').forEach(c=>c.checked=this.checked)">
-                                </th>
-                                <th class="py-2 text-left">Date</th>
-                                <th class="py-2 text-left">Event</th>
                                 <th class="py-2 text-left">Staff</th>
                                 <th class="py-2 text-left">Rate</th>
-                                <th class="py-2 text-left">Status</th>
-                                <th></th>
+                                <th class="py-2 text-left">Pay Status</th>
+                                <th class="py-2 text-left">Actions</th> <!-- Added Actions column -->
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($lines as $l)
+                            @foreach($event->staffs as $staff)
                             <tr class="border-t">
-                                <td class="py-2"><input type="checkbox" name="ids[]" value="{{ $l->id }}" class="chk">
-                                </td>
-                                <td class="py-2">{{ \Illuminate\Support\Carbon::parse($l->event_date)->format('Y-m-d')
-                                    }}</td>
+                                <td class="py-2">{{ $staff->name }}</td>
+                                <td class="py-2">₱{{ number_format($staff->pivot->pay_rate, 2) }}</td>
                                 <td class="py-2">
-                                    <a href="{{ route('admin.events.show', $l->event_id) }}"
-                                        class="text-indigo-600 underline">
-                                        {{ $l->event_name }}
-                                    </a>
+                                    <span class="px-2 py-1 text-xs font-semibold rounded 
+                                    @if($staff->pivot->pay_status === 'paid') bg-green-100 text-green-800 
+                                    @elseif($staff->pivot->pay_status === 'approved') bg-blue-100 text-blue-800 
+                                    @else bg-yellow-100 text-yellow-800 @endif">
+                                        {{ ucfirst($staff->pivot->pay_status) }}
+                                    </span>
                                 </td>
-                                <td class="py-2">{{ $l->name }}</td>
-                                <td class="py-2">₱{{ number_format($l->pay_rate,2) }}</td>
-                                <td class="py-2 capitalize">{{ $l->pay_status }}</td>
-                                <td></td>
+
+                                <!-- Action Column with Mark as Paid -->
+                                <td class="py-2">
+                                    @if($staff->pivot->pay_status !== 'paid')
+                                    <form
+                                        action="{{ route('admin.payroll.markAsPaid', ['eventId' => $event->id, 'staffId' => $staff->id]) }}"
+                                        method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500">
+                                            Mark as Paid
+                                        </button>
+                                    </form>
+                                    @else
+                                    <span class="text-green-600 font-semibold">Paid</span>
+                                    @endif
+                                </td>
                             </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="py-4 text-center text-gray-500">No lines.</td>
-                            </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
-
-                <div class="mt-4 flex items-center gap-2">
-                    <select name="status" class="border rounded px-3 py-2">
-                        @foreach(['pending','approved','paid'] as $s)
-                        <option value="{{ $s }}">{{ ucfirst($s) }}</option>
-                        @endforeach
-                    </select>
-                    <button class="px-4 py-2 bg-gray-800 text-white rounded">Mark Selected</button>
-                </div>
-            </form>
+            </div>
 
         </div>
     </div>

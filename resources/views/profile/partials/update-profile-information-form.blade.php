@@ -18,16 +18,20 @@
         @method('patch')
 
         <div>
-            <div class="md:col-span-2 flex gap-x-5 mb-4">
-
-                @isset($user)
+            <div class="md:col-span-2 flex gap-x-5 mb-4" x-data="{ preview: '{{ $user->profile_photo_url }}' }">
                 <div class="mt-2">
-                    <img src="{{ $user->profile_photo_url }}" class="h-14 w-14 rounded-full object-cover" alt="Avatar">
+                    <img :src="preview" class="h-14 w-14 rounded-full object-cover" alt="Avatar">
                 </div>
-                @endisset
+
                 <div class="text-sm w-1/2">
                     <x-input-label>Profile Photo</x-input-label>
-                    <input type="file" name="avatar" accept="image/*" class="block w-full border rounded px-3 py-2" />
+                    <input type="file" name="avatar" accept="image/*" class="block w-full border rounded px-3 py-2"
+                        @change="
+                   if ($event.target.files.length > 0) {
+                       const file = $event.target.files[0];
+                       preview = URL.createObjectURL(file);
+                   }
+               " />
                     <x-input-error :messages="$errors->get('avatar')" />
                 </div>
             </div>

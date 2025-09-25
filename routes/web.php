@@ -1,5 +1,6 @@
 <?php
 
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CustomerController;
@@ -7,7 +8,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\EventController as CustomerEventController;
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\AdminEventController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\VendorController;
@@ -17,8 +20,18 @@ use App\Http\Middleware\CheckAdmin;
 use App\Http\Middleware\EnsureCustomer;
 use App\Http\Middleware\EnsureStaff;
 use Illuminate\Support\Facades\Route;
+use App\Models\Package;
 
-Route::get('/', fn() => view('welcome'));
+Route::get('/', function () {
+    $packages = Package::with([
+        'vendors:id,name,category,price',
+        'inclusions'
+    ])
+        ->where('is_active', true)
+        ->orderBy('price')
+        ->get();
+    return view('welcome', compact('packages'));
+});
 
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -38,6 +51,8 @@ Route::middleware('auth')->group(function () {
         ->name('customer.')
         ->group(function () {
             Route::resource('events', CustomerEventController::class);
+            Route::get('customer/events/{event}/payment', [PaymentController::class, 'create'])->name('payments.create');
+            Route::post('customer/events/{event}/payment', [PaymentController::class, 'store'])->name('payments.store');
         });
 
     // ========== STAFF AREA ==========
@@ -68,9 +83,38 @@ Route::middleware('auth')->group(function () {
             // Events
             Route::resource('events', AdminEventController::class)->only(['index', 'show', 'update', 'destroy']);
 
-            Route::patch('events/{event}/status', [AdminEventController::class, 'updateStatus'])->name('events.status');
-            Route::patch('events/{event}/assign-staff', [AdminEventController::class, 'assignStaff'])
-                ->name('events.assign-staff');
+            // Generic status update (keep this)
+            Route::patch('events/{event}/status', [AdminEventController::class, 'updateStatus'])
+                ->name('events.status');
+
+            // Staff assignment update
+            Route::get('events/{event}/assign-staff', [AdminEventController::class, 'assignStaffPage'])->name('admin.events.assignStaffPage');
+            Route::put('events/{event}/assign-staff', [AdminEventController::class, 'assignStaff'])->name('admin.events.assignStaff');
+
+
+            Route::put('events/{event}/staff', [AdminEventController::class, 'updateStaff'])
+                ->name('events.staff.update');
+
+            Route::get('/event/{event}/guests', [AdminEventController::class, 'guests'])->name('event.guests');
+            Route::get('/event/{event}/staffs', [AdminEventController::class, 'staffs'])->name('event.staffs');
+
+            // Special cases
+            Route::post('events/{event}/approve', [AdminEventController::class, 'approve'])
+                ->name('events.approve');
+            Route::post('events/{event}/reject', [AdminEventController::class, 'reject'])
+                ->name('events.reject');
+            Route::post('events/{event}/confirm', [AdminEventController::class, 'confirm'])
+                ->name('events.confirm');
+            Route::put('events/{event}/staff', [AdminEventController::class, 'assignStaff'])
+                ->name('events.staff.assign');
+            Route::post('/event/{event}/addStaff', [AdminEventController::class, 'addStaff'])->name('events.addStaff');
+            Route::delete('/admin/events/{event}/removeStaff/{staff}', [AdminEventController::class, 'removeStaff'])->name('admin.events.removeStaff');
+
+            // -- PAYMENTS
+            Route::get('/events/{event}/payment/verify', [AdminPaymentController::class, 'verifyPayment'])
+                ->name('payment.verification');
+            Route::post('/events/{event}/approve-payment', [AdminPaymentController::class, 'approvePayment'])->name('payments.approve');
+            Route::post('/events/{event}/reject-payment', [AdminPaymentController::class, 'rejectPayment'])->name('payments.reject');
 
             // ---- Management ----
             Route::prefix('management')->name('management.')->group(function () {
@@ -97,36 +141,24 @@ Route::middleware('auth')->group(function () {
             // ---- Payroll ----
             Route::prefix('payroll')->name('payroll.')->group(function () {
                 Route::get('/', [PayrollController::class, 'index'])->name('index');
-                Route::get('/lines', [PayrollController::class, 'lines'])->name('lines');
+                Route::get('/lines/{eventId}', [PayrollController::class, 'lines'])->name('lines');
                 Route::patch('/mark', [PayrollController::class, 'mark'])->name('mark');
+                Route::get('/view-staffs/{eventId}', [PayrollController::class, 'viewStaffs'])->name('viewStaffs');
+                Route::post('/mark-paid/{eventId}/{staffId}', [PayrollController::class, 'markAsPaid'])->name('markAsPaid');
             });
 
             // ---- Report ----
             Route::prefix('reports')->name('reports.')->group(function () {
                 Route::get('/', [ReportsController::class, 'index'])->name('index');
 
-                // Events
-                Route::get('/events-by-month', [ReportsController::class, 'eventsByMonth'])->name('events.byMonth');
-                Route::get('/events-by-status', [ReportsController::class, 'eventsByStatus'])->name('events.byStatus');
-                Route::get('/upcoming', [ReportsController::class, 'upcoming'])->name('events.upcoming');
+                // Event reports
+                Route::get('/event/generate', [ReportsController::class, 'generateEventReport'])->name('event.generate');
 
-                // Customers
-                Route::get('/customers-by-month', [ReportsController::class, 'customersByMonth'])->name('customers.byMonth');
-                Route::get('/top-customers', [ReportsController::class, 'topCustomers'])->name('customers.top');
+                // Customer reports
+                Route::get('/customer/generate', [ReportsController::class, 'generateCustomerReport'])->name('customer.generate');
 
-                // Vendors & Packages
-                Route::get('/top-vendors', [ReportsController::class, 'topVendors'])->name('vendors.top');
-                Route::get('/package-usage', [ReportsController::class, 'packageUsage'])->name('packages.usage');
-
-                // Staff
-                Route::get('/staff-workload', [ReportsController::class, 'staffWorkload'])->name('staff.workload');
-
-                // Payments when ready
-                // Route::get('/payments-by-month', [ReportsController::class, 'paymentsByMonth'])->name('payments.byMonth');
-                // Route::get('/customer-balances', [ReportsController::class, 'customerBalances'])->name('payments.balances');
-
-                // Optional CSV export shared endpoint (q=report-key)
-                Route::get('/export', [ReportsController::class, 'export'])->name('export');
+                // Staff reports
+                Route::get('/staff/generate', [ReportsController::class, 'generateStaffReport'])->name('staff.generate');
             });
         });
 
@@ -135,7 +167,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::resource('staff', StaffController::class);
 
-    Route::get('/payments', fn() => view('payments.index'))->name('payments.index');
     Route::get('/reports/monthly', fn() => view('reports.monthly'))->name('reports.monthly');
 });
 

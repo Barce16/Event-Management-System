@@ -83,7 +83,6 @@ class DatabaseSeeder extends Seeder
         $basic = Package::firstOrCreate(
             ['name' => 'Basic Wedding'],
             [
-                // adjust to your column names, e.g. base_price vs price
                 'slug'        => Str::slug('Basic Wedding'),
                 'base_price'  => 50000,
                 'description' => 'Core vendors included',
@@ -102,7 +101,6 @@ class DatabaseSeeder extends Seeder
         );
 
         // Sync vendors to packages
-        $basic->vendors()->sync(array_values(array_filter([$catering, $photo, $florist])));
         $basic->update([
             'event_styling' => ['Stage setup', '2-3 candles', 'Aisle decor'],
             'coordination'  => 'Day-of coordination, supplier follow-ups',
@@ -111,8 +109,106 @@ class DatabaseSeeder extends Seeder
         $premium->vendors()->sync(array_values(array_filter([$catering, $photo, $florist, $lights])));
 
         // ---- INCLUSIONS ----
-        foreach (['Invitations', 'Giveaways', 'Photos', 'Videos', 'Cake'] as $name) {
-            Inclusion::firstOrCreate(['name' => $name], ['is_active' => true]);
-        }
+        // Insert the inclusions directly as per the SQL provided
+        Inclusion::insert([
+            [
+                'id' => 1,
+                'name' => 'Invitations',
+                'contact_person' => null,
+                'contact_email' => null,
+                'contact_phone' => null,
+                'price' => 9600.00,
+                'category' => null,
+                'is_active' => 1,
+                'notes' => "30sets Digital Printing\r\n3 pages; 2 regular sized card, 1 small card\r\nFREE LAY-OUT",
+                'created_at' => now(),
+                'updated_at' => now(),
+                'deleted_at' => null,
+            ],
+            [
+                'id' => 2,
+                'name' => 'Giveaways',
+                'contact_person' => null,
+                'contact_email' => null,
+                'contact_phone' => null,
+                'price' => 22000.00,
+                'category' => null,
+                'is_active' => 1,
+                'notes' => "30 pcs.\r\nWith tags/labels\r\nChoices of: Honey Jars, Coffee Bean Jars, Succulents\r\nTablea Pouch",
+                'created_at' => now(),
+                'updated_at' => now(),
+                'deleted_at' => null,
+            ],
+            [
+                'id' => 3,
+                'name' => 'Photos',
+                'contact_person' => null,
+                'contact_email' => null,
+                'contact_phone' => null,
+                'price' => 46500.00,
+                'category' => null,
+                'is_active' => 1,
+                'notes' => "Prenuptial/Engagement Shoot\r\nOn-the-Day Coverage\r\nAVP Prenup and SDE\r\n50pcs 5r Prints\r\nUSB Softcopy of Photos\r\n2-4 Photographers",
+                'created_at' => now(),
+                'updated_at' => now(),
+                'deleted_at' => null,
+            ],
+            [
+                'id' => 4,
+                'name' => 'Videos',
+                'contact_person' => null,
+                'contact_email' => null,
+                'contact_phone' => null,
+                'price' => 62000.00,
+                'category' => null,
+                'is_active' => 1,
+                'notes' => "Prenuptial/Engagement Shoot\r\nHighlights of the Event\r\nAVP Prenup and SDE\r\n2-4 Videographers",
+                'created_at' => now(),
+                'updated_at' => now(),
+                'deleted_at' => null,
+            ],
+            [
+                'id' => 5,
+                'name' => 'Cake',
+                'contact_person' => null,
+                'contact_email' => null,
+                'contact_phone' => null,
+                'price' => 13100.00,
+                'category' => null,
+                'is_active' => 1,
+                'notes' => "3-tier\r\nDimension:\r\nChoices of Butter and/or Chocolate",
+                'created_at' => now(),
+                'updated_at' => now(),
+                'deleted_at' => null,
+            ],
+            [
+                'id' => 6,
+                'name' => 'HMUA',
+                'contact_person' => null,
+                'contact_email' => null,
+                'contact_phone' => null,
+                'price' => 15000.00,
+                'category' => null,
+                'is_active' => 1,
+                'notes' => "Prenuptial/Engagement Shoot\r\n10 Heads On-the-Day of the Event (including bride)",
+                'created_at' => now(),
+                'updated_at' => now(),
+                'deleted_at' => null,
+            ],
+            [
+                'id' => 8,
+                'name' => 'Host',
+                'contact_person' => null,
+                'contact_email' => null,
+                'contact_phone' => null,
+                'price' => 12200.00,
+                'category' => null,
+                'is_active' => 1,
+                'notes' => "with musical scorer",
+                'created_at' => now(),
+                'updated_at' => now(),
+                'deleted_at' => null,
+            ],
+        ]);
     }
 }

@@ -153,9 +153,14 @@ class EventController extends Controller
         $customer = $request->user()->customer;
         abort_if(!$customer || $event->customer_id !== $customer->id, 403);
 
-        $event->load(['package.vendors', 'vendors']);
-        return view('customers.events.show', compact('event'));
+        $event->load(['package', 'billing']);
+
+        $incs = $event->inclusions ?? collect();
+        $incSubtotal = $incs->sum(fn($i) => (float)($i->pivot->price_snapshot ?? $i->price ?? 0));
+
+        return view('customers.events.show', compact('event', 'incSubtotal'));
     }
+
 
     public function edit(Request $request, Event $event)
     {

@@ -57,7 +57,7 @@
             <div class="bg-white shadow-sm rounded-lg p-6">
                 <h3 class="font-semibold mb-3">Quick Actions</h3>
                 <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('payments.index') }}" class="bg-violet-700 text-white px-4 py-2 rounded">View
+                    <a href="#" class="bg-violet-700 text-white px-4 py-2 rounded">View
                         Payments</a>
                     <a href="{{ route('reports.monthly') }}" class="bg-gray-800 text-white px-4 py-2 rounded">Monthly
                         Report</a>
@@ -71,6 +71,7 @@
                     <table class="min-w-full text-sm">
                         <thead class="text-gray-600">
                             <tr>
+                                <th class="text-left py-2">Customer</th>
                                 <th class="text-left py-2">Event</th>
                                 <th class="text-left py-2">Date</th>
                                 <th class="text-left py-2">Status</th>
@@ -78,7 +79,29 @@
                         </thead>
                         <tbody>
                             @forelse($recentEvents ?? [] as $e)
+
+                            @php
+                            $cust = $e->customer;
+                            $custName = $cust?->user?->name
+                            ?? $cust?->name
+                            ?? $cust?->customer_name
+                            ?? 'Unknown';
+
+                            $avatarUrl = $cust?->user?->profile_photo_url
+                            ?? 'https://ui-avatars.com/api/?name=' . urlencode($custName) .
+                            '&background=E5E7EB&color=374151&size=64';
+                            @endphp
                             <tr class="border-t">
+                                {{-- Customer --}}
+                                <td class="py-2">
+                                    <div class="flex items-center gap-2">
+                                        <img src="{{ $avatarUrl }}" alt="Avatar"
+                                            class="h-8 w-8 rounded-full object-cover">
+                                        <span class="font-medium text-gray-900">{{ $custName }}</span>
+                                    </div>
+                                </td>
+
+                                {{-- Event --}}
                                 <td class="py-2">
                                     <a href="{{ route('admin.events.show', $e) }}"
                                         class="text-indigo-600 hover:underline">
@@ -86,7 +109,11 @@
                                     </a>
                                     <div class="text-xs text-gray-500">{{ $e->venue ?: '—' }}</div>
                                 </td>
+
+                                {{-- Date --}}
                                 <td>{{ \Illuminate\Support\Carbon::parse($e->event_date)->format('Y-m-d') }}</td>
+
+                                {{-- Status --}}
                                 <td>
                                     @php
                                     $color = match(strtolower($e->status)) {
@@ -99,19 +126,20 @@
                                     };
                                     @endphp
                                     <span class="px-2 py-1 rounded text-xs {{ $color }}">
-                                        {{ ucfirst($e->status) }}
+                                        {{ ucwords(str_replace('_', ' ', strtolower($e->status))) }}
                                     </span>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="3" class="py-4 text-center text-gray-500">No recent events.</td>
+                                <td colspan="4" class="py-4 text-center text-gray-500">No recent events.</td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
+
 
             @else
             {{-- ================= CUSTOMER VIEW ================= --}}
@@ -133,7 +161,7 @@
                     <a href="{{ route('customer.events.index') }}"
                         class="bg-emerald-700 text-white px-4 py-2 rounded">My
                         Events</a>
-                    <a href="{{ route('payments.index') }}" class="bg-violet-700 text-white px-4 py-2 rounded">My
+                    <a href="#" class="bg-violet-700 text-white px-4 py-2 rounded">My
                         Payments</a>
                     <a href="{{ route('profile.edit') }}" class="bg-gray-800 text-white px-4 py-2 rounded">Edit
                         Profile</a>
@@ -174,7 +202,7 @@
                                     };
                                     @endphp
                                     <span class="px-2 py-1 rounded text-xs {{ $color }}">
-                                        {{ ucfirst($e->status) }}
+                                        {{ ucwords(str_replace('_', ' ', strtolower($e->status))) }}
                                     </span>
                                 </td>
                             </tr>

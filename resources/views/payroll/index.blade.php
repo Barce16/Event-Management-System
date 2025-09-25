@@ -8,7 +8,7 @@
 
             <form method="GET" class="bg-white p-4 rounded shadow-sm grid grid-cols-1 md:grid-cols-6 gap-3">
                 <input type="date" name="from" value="{{ $from }}" class="border rounded px-3 py-2">
-                <input type="date" name="to" value="{{ $to   }}" class="border rounded px-3 py-2">
+                <input type="date" name="to" value="{{ $to }}" class="border rounded px-3 py-2">
                 <select name="status" class="border rounded px-3 py-2">
                     <option value="">All status</option>
                     @foreach(['pending','approved','paid'] as $s)
@@ -21,34 +21,50 @@
                 </div>
             </form>
 
-            <div class="bg-white p-4 rounded shadow-sm overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="text-gray-600">
-                        <tr>
-                            <th class="py-2 text-left">Staff</th>
-                            <th class="py-2 text-left">Events</th>
-                            <th class="py-2 text-left">Total Pay</th>
-                            <th class="py-2"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($rows as $r)
-                        <tr class="border-t">
-                            <td class="py-2">{{ $r->name }}</td>
-                            <td class="py-2">{{ $r->events_count }}</td>
-                            <td class="py-2">₱{{ number_format($r->total_pay,2) }}</td>
-                            <td class="py-2">
-                                <a href="{{ route('admin.payroll.lines', ['from'=>$from,'to'=>$to,'status'=>$status,'staff_id'=>$r->staff_id]) }}"
-                                    class="text-indigo-600 underline">View lines</a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="4" class="py-4 text-center text-gray-500">No data.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div class="bg-white p-4 rounded shadow-sm">
+                @foreach($groupedEvents as $eventId => $staffs)
+                <div class="mb-6">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-semibold text-lg text-gray-800 border-b pb-3">
+                            Event: {{ $staffs->first()->event_name }} ({{
+                            \Carbon\Carbon::parse($staffs->first()->event_date)->format('F j, Y') }})
+                        </h3>
+                        <!-- View Button for each event -->
+                        <a href="{{ route('admin.payroll.lines', ['eventId' => $eventId]) }}"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500">
+                            View Lines
+                        </a>
+                    </div>
+
+                    <table class="min-w-full mt-4 text-sm">
+                        <thead class="text-gray-600">
+                            <tr>
+                                <th class="py-2 text-left">Staff</th>
+                                <th class="py-2 text-left">Role</th>
+                                <th class="py-2 text-left">Rate</th>
+                                <th class="py-2 text-left">Pay Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($staffs as $staff)
+                            <tr class="border-t">
+                                <td class="py-2">{{ $staff->staff_name }}</td>
+                                <td class="py-2">{{ $staff->assignment_role }}</td>
+                                <td class="py-2">₱{{ number_format($staff->pay_rate, 2) }}</td>
+                                <td class="py-2">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded 
+                                    @if($staff->pay_status === 'paid') bg-green-100 text-green-800 
+                                    @elseif($staff->pay_status === 'approved') bg-blue-100 text-blue-800 
+                                    @else bg-yellow-100 text-yellow-800 @endif">
+                                        {{ ucfirst($staff->pay_status) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endforeach
             </div>
 
         </div>

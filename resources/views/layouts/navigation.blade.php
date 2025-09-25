@@ -137,9 +137,6 @@
             <x-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
                 {{ __('Staff') }}
             </x-nav-link>
-            <x-responsive-nav-link :href="route('payments.index')" :active="request()->routeIs('payments.*')">
-                {{ __('Payments') }}
-            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('reports.monthly')" :active="request()->routeIs('reports.*')">
                 {{ __('Reports') }}
             </x-responsive-nav-link>

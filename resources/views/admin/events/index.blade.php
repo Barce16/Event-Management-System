@@ -11,10 +11,10 @@
             {{-- Filters --}}
             <form method="GET" class="bg-white p-4 rounded-lg shadow-sm grid grid-cols-1 md:grid-cols-7 gap-3">
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Search (event, customer, venue)"
-                    class="border rounded px-3 py-2 md:col-span-2">
+                    class="border rounded px-3 py-2 md:col-span-2 text-sm">
 
                 {{-- Package filter --}}
-                <select name="package_id" class="border rounded px-3 py-2">
+                <select name="package_id" class="border rounded px-3 py-2 text-sm">
                     <option value="">All Packages</option>
                     @isset($packages)
                     @foreach($packages as $p)
@@ -24,7 +24,7 @@
                 </select>
 
                 {{-- Status filter --}}
-                <select name="status" class="border rounded px-3 py-2">
+                <select name="status" class="border rounded px-3 py-2 text-sm">
                     <option value="">All Status</option>
                     @foreach(['requested','approved','scheduled','completed','cancelled'] as $s)
                     <option value="{{ $s }}" @selected(request('status')===$s)>{{ ucfirst($s) }}</option>
@@ -34,11 +34,12 @@
                 {{-- Date range (spans two columns) --}}
                 <div class="flex gap-2 md:col-span-2">
                     <input type="date" name="from" value="{{ request('from') }}"
-                        class="border rounded px-3 py-2 w-full">
-                    <input type="date" name="to" value="{{ request('to')   }}" class="border rounded px-3 py-2 w-full">
+                        class="border rounded px-3 py-2 w-full text-sm">
+                    <input type="date" name="to" value="{{ request('to')   }}"
+                        class="border rounded px-3 py-2 w-full text-sm">
                 </div>
 
-                <div class="md:col-span-7 flex justify-end gap-2">
+                <div class="md:col-span-1 flex justify-end gap-2">
                     <a href="{{ route('admin.events.index') }}" class="px-3 py-2 border rounded">Reset</a>
                     <button class="px-4 py-2 bg-gray-800 text-white rounded">Filter</button>
                 </div>
@@ -89,7 +90,9 @@
                                 default => 'bg-gray-100 text-gray-800',
                                 };
                                 @endphp
-                                <span class="px-2 py-1 rounded text-xs {{ $color }}">{{ ucfirst($e->status) }}</span>
+                                <span class="px-2 py-1 rounded text-xs {{ $color }}">
+                                    {{ ucwords(str_replace('_', ' ', strtolower($e->status))) }}
+                                </span>
                             </td>
 
                             <td class="py-2 space-x-2">

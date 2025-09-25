@@ -57,4 +57,28 @@ class Event extends Model
             ->withPivot('price_snapshot')
             ->withTimestamps();
     }
+
+    public function billing()
+    {
+        return $this->hasOne(Billing::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasManyThrough(Payment::class, Billing::class);
+    }
+
+    public function isDownpaymentPending()
+    {
+        return $this->payments()->where('payments.status', 'pending')
+            ->whereHas('billing', function ($query) {
+                $query->where('downpayment_amount', '>', 0);
+            })
+            ->exists();
+    }
+
+    public function meeting()
+    {
+        return $this->hasOne(Meeting::class);
+    }
 }

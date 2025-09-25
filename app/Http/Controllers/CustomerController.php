@@ -59,12 +59,16 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
-        $customer->load(['events' => function ($q) {
-            $q->latest()->take(10);
-        }]);
+        $customer->load([
+            'user',
+            'events' => function ($q) {
+                $q->orderByDesc('event_date')->limit(10);
+            },
+        ]);
 
         return view('customers.show', compact('customer'));
     }
+
 
     public function destroy(Customer $customer)
     {

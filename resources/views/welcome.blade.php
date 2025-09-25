@@ -148,36 +148,137 @@
         </div>
     </section>
 
-    <!-- FEATURE CARDS -->
-    <section class="py-16 sm:py-20">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <div
-                    class="rounded-2xl border bg-white/70 backdrop-blur shadow-sm p-6 dark:bg-neutral-800/60 dark:border-neutral-700">
-                    <h4 class="font-semibold">Your Event Hub</h4>
-                    <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">Everything about your event in one
-                        place.</p>
-                </div>
-                <div
-                    class="rounded-2xl border bg-white/70 backdrop-blur shadow-sm p-6 dark:bg-neutral-800/60 dark:border-neutral-700">
-                    <h4 class="font-semibold">Timeline & Checklist</h4>
-                    <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">Know what’s happening and when.</p>
-                </div>
-                <div
-                    class="rounded-2xl border bg-white/70 backdrop-blur shadow-sm p-6 dark:bg-neutral-800/60 dark:border-neutral-700">
-                    <h4 class="font-semibold">Secure Payments</h4>
-                    <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">View payments and downloadable
-                        invoices.</p>
-                </div>
-                <div
-                    class="rounded-2xl border bg-white/70 backdrop-blur shadow-sm p-6 dark:bg-neutral-800/60 dark:border-neutral-700">
-                    <h4 class="font-semibold">Notifications</h4>
-                    <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">Receive updates and reminders
-                        instantly.</p>
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
+
+            {{-- Available Packages --}}
+            @if(!empty($packages) && $packages->count())
+            <div class="bg-white/0 shadow-sm rounded-lg p-6">
+                <h3 class="font-semibold text-xl mb-4">Available Packages</h3>
+
+                @php
+                $pal = [
+                ['grad' => 'from-emerald-700 to-emerald-900','ring' => 'ring-emerald-700/40','pill' => 'bg-emerald-800
+                text-emerald-100','price' => 'text-emerald-900'],
+                ['grad' => 'from-sky-700 to-sky-900','ring' => 'ring-sky-700/40','pill' => 'bg-sky-800
+                text-sky-100','price' => 'text-sky-900'],
+                ['grad' => 'from-violet-700 to-violet-900','ring' => 'ring-violet-700/40','pill' => 'bg-violet-800
+                text-violet-100','price' => 'text-violet-900'],
+                ['grad' => 'from-amber-700 to-amber-900','ring' => 'ring-amber-700/40','pill' => 'bg-amber-800
+                text-amber-100','price' => 'text-amber-900'],
+                ];
+                @endphp
+
+                <div class="space-y-6">
+                    @foreach($packages as $idx => $p)
+                    @php
+                    $c = $pal[$idx % count($pal)];
+                    $incs = $p->inclusions ?? collect();
+                    $sty = is_array($p->event_styling ?? null) ? $p->event_styling : [];
+                    $price = $p->price ?? null;
+
+                    // Build 4 gallery images from DB with placeholders fallback
+                    $g = [];
+                    $dbImgs = $p->images ?? collect();
+                    for ($i = 0; $i < 4; $i++) { $img=$dbImgs[$i] ?? null; $g[$i]=[ 'url'=> $img?->url ?:
+                        "https://picsum.photos/seed/pkg-{$p->id}-{$i}/960/640",
+                        'alt' => $img?->alt ?: "Package image",
+                        ];
+                        }
+                        @endphp
+
+                        <div
+                            class="rounded-2xl overflow-hidden bg-white ring-1 {{ $c['ring'] }} shadow-sm hover:shadow-md transition">
+                            <div class="p-4 grid gap-4 lg:grid-cols-3 items-stretch">
+                                <div class="space-y-4 flex flex-col">
+                                    <div class="p-4 bg-gradient-to-br {{ $c['grad'] }} text-white rounded-t-lg">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <div class="text-xl font-semibold tracking-tight">{{ $p->name }}</div>
+                                                @if(!is_null($price))
+                                                <div class="mt-0.5 text-lg font-bold">₱{{ number_format($p->price, 2) }}
+                                                </div>
+                                                @endif
+                                            </div>
+                                            <span
+                                                class="px-2 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur">
+                                                {{ $p->is_active ? 'Active' : 'Inactive' }}
+                                            </span>
+                                        </div>
+                                        @if($p->description)
+                                        <p class="mt-2 text-white/90 text-sm leading-snug">{{
+                                            Str::limit($p->description, 140) }}</p>
+                                        @endif
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                            <div class="text-[11px] uppercase tracking-wide text-gray-500">Coordination
+                                            </div>
+                                            <div class="mt-1 font-semibold {{ $c['price'] }}">₱{{
+                                                number_format($p->coordination_price ?? 25000, 2) }}</div>
+                                        </div>
+                                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                            <div class="text-[11px] uppercase tracking-wide text-gray-500">Event Styling
+                                            </div>
+                                            <div class="mt-1 font-semibold {{ $c['price'] }}">₱{{
+                                                number_format($p->event_styling_price ?? 55000, 2) }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-xs uppercase tracking-wide text-gray-500 mb-2">Inclusions</div>
+                                        @if($incs->isEmpty())
+                                        <div class="text-sm text-gray-500">—</div>
+                                        @else
+                                        <ul class="space-y-2">
+                                            @foreach($incs as $inc)
+                                            <li class="rounded-lg border border-gray-200 bg-white p-3">
+                                                <div class="font-medium text-gray-900">{{ $inc->name }}</div>
+                                            </li>
+                                            @endforeach
+                                        </ul>
+                                        @endif
+                                    </div>
+
+                                    <div class="pt-1 mt-auto">
+                                        <a href="{{ route('register') }}"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-gray-900 text-white px-5 py-2 text-sm hover:bg-gray-800 transition focus:outline-none focus:ring-2 focus:ring-gray-400">
+                                            Book this package
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <div class="grid grid-cols-2 gap-2 h-full">
+                                        <figure class="col-span-2 aspect-[16/9] rounded-xl overflow-hidden relative">
+                                            <img src="{{ $g[0]['url'] }}" alt="{{ $g[0]['alt'] }}"
+                                                class="w-full h-full object-cover block" loading="lazy">
+                                        </figure>
+
+                                        <figure class="aspect-[4/3] rounded-xl overflow-hidden relative">
+                                            <img src="{{ $g[1]['url'] }}" alt="{{ $g[1]['alt'] }}"
+                                                class="w-full h-full object-cover block" loading="lazy">
+                                        </figure>
+                                        <figure class="aspect-[4/3] rounded-xl overflow-hidden relative">
+                                            <img src="{{ $g[2]['url'] }}" alt="{{ $g[2]['alt'] }}"
+                                                class="w-full h-full object-cover block" loading="lazy">
+                                        </figure>
+
+                                        <figure class="col-span-2 aspect-[16/6] rounded-xl overflow-hidden relative">
+                                            <img src="{{ $g[3]['url'] }}" alt="{{ $g[3]['alt'] }}"
+                                                class="w-full h-full object-cover block" loading="lazy">
+                                        </figure>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
                 </div>
             </div>
+            @endif
         </div>
-    </section>
+    </div>
 
     <!-- FOOTER -->
     <footer class="border-t border-neutral-200/60 py-10 dark:border-neutral-800/80">

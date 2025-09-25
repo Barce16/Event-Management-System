@@ -4,43 +4,45 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 grid gap-4 md:grid-cols-2">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 grid gap-4 md:grid-cols-3">
 
-            {{-- Events --}}
-            <div class="bg-white p-6 rounded-lg shadow-sm space-y-3">
-                <h3 class="font-semibold">Events</h3>
-                <div class="grid gap-2">
-                    <a class="underline" href="{{ route('admin.reports.events.byMonth') }}">Events by Month</a>
-                    <a class="underline" href="{{ route('admin.reports.events.byStatus') }}">Events by Status</a>
-                    <a class="underline" href="{{ route('admin.reports.events.upcoming') }}">Upcoming (next 30 days)</a>
-                </div>
+            <!-- Event Report Generation -->
+            <div>
+                <h3 class="font-semibold text-lg">Event Reports</h3>
+                <a href="{{ route('admin.reports.event.generate', ['format' => 'csv']) }}"
+                    class="px-4 py-2 text-sm bg-gray-700 text-white rounded-md hover:bg-gray-600">
+                    Download CSV Report
+                </a>
+                <a href="{{ route('admin.reports.event.generate', ['format' => 'pdf']) }}"
+                    class="px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-500">
+                    Download PDF Report
+                </a>
             </div>
 
-            {{-- Customers --}}
-            <div class="bg-white p-6 rounded-lg shadow-sm space-y-3">
-                <h3 class="font-semibold">Customers</h3>
-                <div class="grid gap-2">
-                    <a class="underline" href="{{ route('admin.reports.customers.byMonth') }}">Customers by
-                        Month</a>
-                    <a class="underline" href="{{ route('admin.reports.customers.top') }}">Top Customers</a>
-                </div>
+            <!-- Customer Report Generation -->
+            <div>
+                <h3 class="font-semibold text-lg">Customer Reports</h3>
+                <a href="{{ route('admin.reports.customer.generate', ['format' => 'csv']) }}"
+                    class="px-4 py-2 text-sm bg-gray-700 text-white rounded-md hover:bg-gray-600">
+                    Download CSV Report
+                </a>
+                <a href="{{ route('admin.reports.customer.generate', ['format' => 'pdf']) }}"
+                    class="px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-500">
+                    Download PDF Report
+                </a>
             </div>
 
-            {{-- Vendors & Packages --}}
-            <div class="bg-white p-6 rounded-lg shadow-sm space-y-3">
-                <h3 class="font-semibold">Vendors & Packages</h3>
-                <div class="grid gap-2">
-                    <a class="underline" href="{{ route('admin.reports.vendors.top') }}">Top Vendors</a>
-                    <a class="underline" href="{{ route('admin.reports.packages.usage') }}">Package Usage</a>
-                </div>
-            </div>
-
-            {{-- Staff --}}
-            <div class="bg-white p-6 rounded-lg shadow-sm space-y-3">
-                <h3 class="font-semibold">Staff</h3>
-                <div class="grid gap-2">
-                    <a class="underline" href="{{ route('admin.reports.staff.workload') }}">Staff Workload</a>
-                </div>
+            <!-- Staff Report Generation -->
+            <div>
+                <h3 class="font-semibold text-lg">Staff Reports</h3>
+                <a href="{{ route('admin.reports.staff.generate', ['format' => 'csv']) }}"
+                    class="px-4 py-2 text-sm bg-gray-700 text-white rounded-md hover:bg-gray-600">
+                    Download CSV Report
+                </a>
+                <a href="{{ route('admin.reports.staff.generate', ['format' => 'pdf']) }}"
+                    class="px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-500">
+                    Download PDF Report
+                </a>
             </div>
 
         </div>

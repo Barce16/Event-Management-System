@@ -2,16 +2,79 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800">{{ $event->name }}</h2>
+
+            @if($event->status === 'requested')
             <a href="{{ route('customer.events.edit', $event) }}"
                 class="px-3 py-2 bg-gray-800 text-white rounded">Edit</a>
+            @endif
         </div>
     </x-slot>
+
 
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             {{-- Summary --}}
             <div class="bg-white rounded-lg shadow-sm p-6">
+                {{-- Display Downpayment Request if Event is Approved --}}
+                @if($event->status === 'approved')
+                <div class="bg-yellow-100 text-yellow-800 p-2 rounded-lg mb-5">
+                    <div class="font-semibold text-lg">Please pay your downpayment to proceed with the scheduling of the
+                        meeting.</div>
+                    @if($event->billing)
+                    <div class="mt-2">
+                        Downpayment Amount: <strong>₱{{ number_format($event->billing->downpayment_amount, 2)
+                            }}</strong>
+                    </div>
+                    @else
+                    <div class="mt-2 text-red-500">No billing information available for this event.</div>
+                    @endif
+
+                    <div class="my-4">
+                        <a href="{{ route('customer.payments.create', ['event' => $event->id]) }}"
+                            class="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-600">
+                            Pay Now
+                        </a>
+                    </div>
+                </div>
+                @endif
+                {{-- Display Downpayment Request if Event is Meeting --}}
+                @if($event->status === 'meeting')
+                <div class="bg-blue-100 text-blue-800 p-4 rounded-lg mb-5">
+                    <div class="font-semibold text-lg">Your downpayment has been confirmed. Please contact us to
+                        schedule the meeting.</div>
+                    <div class="mt-2">
+                        For scheduling, please reach us at: <strong>09173062531</strong>
+                    </div>
+                </div>
+                @endif
+
+                {{-- Display Downpayment Rejected Message --}}
+                @if($event->billing && $event->billing->downpayment_amount > 0 &&
+                $event->billing->payment()->where('status', 'rejected')->exists())
+                <div class="bg-red-100 text-red-800 p-4 rounded-lg mb-5">
+                    <div class="font-semibold text-lg">Your downpayment has been rejected. Please contact us for further
+                        details.</div>
+
+                    @if($event->billing)
+                    <div class="mt-2">
+                        Downpayment Amount: <strong>₱{{ number_format($event->billing->downpayment_amount, 2)
+                            }}</strong>
+                    </div>
+                    @else
+                    <div class="mt-2 text-red-500">No billing information available for this event.</div>
+                    @endif
+
+                    <div class="my-4">
+                        <a href="{{ route('customer.payments.create', ['event' => $event->id]) }}"
+                            class="px-4 py-2 bg-rose-950 text-white rounded hover:bg-rose-600">
+                            Pay Now
+                        </a>
+                    </div>
+                </div>
+                @endif
+
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <div class="text-gray-600 text-sm">Date</div>
@@ -98,7 +161,6 @@
 
             {{-- Selected Inclusions for this Event --}}
             @php
-            // Make sure relations are loaded: $event->loadMissing('inclusions');
             $incs = $event->inclusions ?? collect();
             $incSubtotal = $incs->sum(fn($i) => (float)($i->pivot->price_snapshot ?? $i->price ?? 0));
             @endphp
@@ -144,7 +206,6 @@
                     @endforeach
                 </ul>
 
-                {{-- Totals (based on current package coordination/styling and selected inclusions snapshot) --}}
                 <div class="mt-4 rounded border bg-gray-50 p-3 text-sm text-gray-800">
                     <div class="flex items-center justify-between">
                         <span>Inclusions Subtotal</span>
@@ -168,45 +229,6 @@
                         <span class="font-bold text-2xl">₱{{ number_format($grand, 2) }}</span>
                     </div>
                     @endif
-                </div>
-                @endif
-            </div>
-
-            {{-- Guests --}}
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="text-gray-500 text-sm mb-1">Guests</div>
-                @php
-                $guests = $event->guests ?? collect();
-                $headcount = $guests->sum('party_size');
-                @endphp
-
-                @if($guests->isEmpty())
-                <div class="text-gray-500">No guests added.</div>
-                @else
-                <div class="mb-2 text-sm text-gray-600">
-                    Total invitees: {{ $guests->count() }} • Estimated headcount: {{ $headcount }}
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm border rounded">
-                        <thead class="bg-gray-50 text-gray-600">
-                            <tr>
-                                <th class="text-left py-2 px-3">Name</th>
-                                <th class="text-left py-2 px-3">Contact</th>
-                                <th class="text-left py-2 px-3">Email</th>
-                                <th class="text-left py-2 px-3">Party Size</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($guests as $g)
-                            <tr class="border-t">
-                                <td class="py-2 px-3 font-medium">{{ $g->name }}</td>
-                                <td class="py-2 px-3">{{ $g->contact_number ?: '—' }}</td>
-                                <td class="py-2 px-3">{{ $g->email ?: '—' }}</td>
-                                <td class="py-2 px-3">{{ $g->party_size }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
                 </div>
                 @endif
             </div>
