@@ -26,6 +26,9 @@
                         :active="request()->routeIs('customer.payment-history')">
                         {{ __('Payment History') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('customer.billings')" :active="request()->routeIs('customer.billings')">
+                        {{ __('Billings') }}
+                    </x-nav-link>
                     @endif
 
                     @auth
@@ -130,6 +133,9 @@
             <x-responsive-nav-link :href="route('customer.payment-history')"
                 :active="request()->routeIs('customer.payment-history')">
                 {{ __(key: 'Payment History') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('customer.billings')" :active="request()->routeIs('customer.billings')">
+                {{ __(key: 'Billings') }}
             </x-responsive-nav-link>
             @endif
 

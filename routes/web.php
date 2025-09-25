@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\Customer\BillingPageController;
 use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\EventController as CustomerEventController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
@@ -54,6 +55,8 @@ Route::middleware('auth')->group(function () {
             Route::get('customer/events/{event}/payment', [PaymentController::class, 'create'])->name('payments.create');
             Route::post('customer/events/{event}/payment', [PaymentController::class, 'store'])->name('payments.store');
             Route::get('/payments', [PaymentController::class, 'index'])->name('payment-history');
+            Route::get('/billings', [BillingPageController::class, 'index'])->name('billings');
+            Route::get('/payments/create/{event}', [PaymentController::class, 'create'])->name('payments.create');
         });
 
     // ========== STAFF AREA ==========

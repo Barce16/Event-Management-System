@@ -57,9 +57,11 @@ class PaymentController extends Controller
             'payment_date' => now(),
         ]);
 
-        $event->update([
-            'status' => 'request_meeting',
-        ]);
+        if ($event->status === 'approved') {
+            $event->update([
+                'status' => 'request_meeting',
+            ]);
+        }
 
         return redirect()->route('customer.events.show', $event)->with('success', 'Payment proof submitted successfully.');
     }

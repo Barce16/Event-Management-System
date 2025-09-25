@@ -54,7 +54,7 @@
 
 
             {{-- Quick Actions --}}
-            <div class="bg-white shadow-sm rounded-lg p-6">
+            {{-- <div class="bg-white shadow-sm rounded-lg p-6">
                 <h3 class="font-semibold mb-3">Quick Actions</h3>
                 <div class="flex flex-wrap gap-3">
                     <a href="#" class="bg-violet-700 text-white px-4 py-2 rounded">View
@@ -62,7 +62,7 @@
                     <a href="{{ route('reports.monthly') }}" class="bg-gray-800 text-white px-4 py-2 rounded">Monthly
                         Report</a>
                 </div>
-            </div>
+            </div> --}}
 
             {{-- Recent Events --}}
             <div class="bg-white shadow-sm rounded-lg p-6">

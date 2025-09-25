@@ -81,7 +81,7 @@
                         <tr class="border-t">
                             <td class="px-4 py-2">{{ $staff->name }}</td>
                             <td class="px-4 py-2">{{ $staff->pivot->assignment_role }}</td>
-                            <td class="px-4 py-2">{{ number_format($staff->pivot->pay_rate, 2) }}</td>
+                            <td class="px-4 py-2">₱ {{ number_format($staff->pivot->pay_rate, 2) }}</td>
                             <td class="px-4 py-2">{{ ucfirst($staff->pivot->pay_status) }}</td>
                         </tr>
                         @endforeach
