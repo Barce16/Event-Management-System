@@ -43,6 +43,9 @@
                     <x-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
                         {{ __('Staff') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('admin.payments.index')" :active="request()->routeIs('admin.payments.*')">
+                        {{ __('Payments') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('admin.payroll.index')" :active="request()->routeIs('admin.payroll.*')">
                         {{ __('Payroll') }}
                     </x-nav-link>

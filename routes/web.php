@@ -12,7 +12,7 @@ use App\Http\Controllers\Customer\BillingPageController;
 use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\EventController as CustomerEventController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
-use App\Http\Controllers\Admin\PaymentController as AdminPayment2Controller;
+use App\Http\Controllers\Admin\CustomerPaymentController;
 use App\Http\Controllers\Admin\AdminEventController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\VendorController;
@@ -121,9 +121,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/events/{event}/approve-payment', [AdminPaymentController::class, 'approvePayment'])->name('payments.approve');
             Route::post('/events/{event}/reject-payment', [AdminPaymentController::class, 'rejectPayment'])->name('payments.reject');
 
-            Route::get('/payments', [AdminPayment2Controller::class, 'index'])->name('payments.index');
-            Route::post('/payments/{paymentId}/approve', [AdminPayment2Controller::class, 'approve'])->name('payments.approve');
-            Route::post('/payments/{paymentId}/reject', [AdminPayment2Controller::class, 'reject'])->name('payments.reject');
+            Route::get('payments', [CustomerPaymentController::class, 'index'])->name('payments.index');
+            Route::post('payments/{paymentId}/approve', [CustomerPaymentController::class, 'approve'])->name('payments.approve');
+            Route::post('payments/{paymentId}/reject', [CustomerPaymentController::class, 'reject'])->name('payments.reject');
 
             // ---- Management ----
             Route::prefix('management')->name('management.')->group(function () {

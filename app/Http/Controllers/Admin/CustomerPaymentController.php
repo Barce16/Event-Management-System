@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
 
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Event;
+use App\Models\Billing;
 use Illuminate\Http\Request;
 
-class AdminPaymentController extends Controller
+class CustomerPaymentController extends Controller
 {
     public function index()
     {
