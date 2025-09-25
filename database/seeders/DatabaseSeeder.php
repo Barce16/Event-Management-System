@@ -84,7 +84,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Basic Wedding'],
             [
                 'slug'        => Str::slug('Basic Wedding'),
-                'base_price'  => 50000,
+                'price'  => 50000,
                 'description' => 'Core vendors included',
                 'is_active'   => true,
             ]
@@ -94,7 +94,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Premium Wedding'],
             [
                 'slug'        => Str::slug('Premium Wedding'),
-                'base_price'  => 120000,
+                'price'  => 120000,
                 'description' => 'Premium lineup',
                 'is_active'   => true,
             ]
