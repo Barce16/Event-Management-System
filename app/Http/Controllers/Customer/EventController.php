@@ -43,10 +43,6 @@ class EventController extends Controller
         return view('customers.events.create', compact('packages', 'vendors'));
     }
 
-
-
-
-
     public function store(Request $request)
     {
         $data = $request->validate([

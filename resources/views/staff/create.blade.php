@@ -5,7 +5,6 @@
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            {{-- Optional: error summary --}}
             @if ($errors->any())
             <div class="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 <div class="font-semibold mb-1">Please fix the following:</div>

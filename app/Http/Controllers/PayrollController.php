@@ -37,7 +37,6 @@ class PayrollController extends Controller
 
         $events = $events->orderBy('e.event_date')->get();
 
-        // Group the data by event to display the staff per event
         $groupedEvents = $events->groupBy('event_id');
 
         return view('payroll.index', compact('groupedEvents', 'from', 'to', 'status'));

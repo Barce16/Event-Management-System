@@ -32,7 +32,6 @@ class ProfileController extends Controller
 
         $user->fill($request->validated());
 
-        // If email changed, re-verify
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
@@ -44,11 +43,9 @@ class ProfileController extends Controller
             $user->profile_photo_path = null;
         }
 
-        // Handle avatar upload
         if ($request->hasFile('avatar')) {
             $path = $request->file('avatar')->store('avatars', 'public');
 
-            // delete old if present
             if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
                 Storage::disk('public')->delete($user->profile_photo_path);
             }

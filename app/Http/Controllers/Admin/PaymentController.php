@@ -11,17 +11,14 @@ use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
-    // Admin checks and verifies payment
     public function verifyPayment(Request $request, $eventId)
     {
         $event = Event::findOrFail($eventId);
-        $payment = $event->payments()->latest()->first();  // This will fetch the latest payment for the event
-
+        $payment = $event->payments()->latest()->first();
         if (!$payment) {
             return redirect()->back()->with('error', 'No payment found for this event.');
         }
 
-        // Pass payment data to the view for verification
         return view('admin.payments.verify', [
             'event' => $event,
             'payment' => $payment,
@@ -81,7 +78,7 @@ class PaymentController extends Controller
     {
         $meeting = new \App\Models\Meeting();
         $meeting->event_id = $event->id;
-        $meeting->meeting_date = now()->addWeek(); // Schedule it one week later
+        $meeting->meeting_date = now()->addWeek();
         $meeting->location = 'Zoom Meeting (Link will be shared)';
         $meeting->agenda = 'Event preparation discussion';
         $meeting->save();

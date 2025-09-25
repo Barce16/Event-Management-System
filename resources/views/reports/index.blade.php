@@ -6,7 +6,6 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 grid gap-4 md:grid-cols-3">
 
-            <!-- Event Report Generation -->
             <div>
                 <h3 class="font-semibold text-lg">Event Reports</h3>
                 <a href="{{ route('admin.reports.event.generate', ['format' => 'csv']) }}"
@@ -19,7 +18,6 @@
                 </a>
             </div>
 
-            <!-- Customer Report Generation -->
             <div>
                 <h3 class="font-semibold text-lg">Customer Reports</h3>
                 <a href="{{ route('admin.reports.customer.generate', ['format' => 'csv']) }}"

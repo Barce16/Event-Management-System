@@ -97,40 +97,33 @@ class AdminEventController extends Controller
 
     public function approve(Request $request, Event $event)
     {
-        // Validate the downpayment amount
         $data = $request->validate([
             'downpayment_amount' => ['required', 'numeric', 'min:0'],
         ]);
 
-        // Correct grand total calculation based on the provided formula
         $inclusionsSubtotal = $event->inclusions->sum(fn($i) => (float) ($i->pivot->price_snapshot ?? 0));
         $coord = (float) ($event->package?->coordination_price ?? 25000);
         $styling = (float) ($event->package?->event_styling_price ?? 55000);
         $grandTotal = $inclusionsSubtotal + $coord + $styling;
 
-        // Check if billing exists for the event, if not create one
         $billing = Billing::where('event_id', $event->id)->first();
 
         if (!$billing) {
-            // Create a new Billing record if it doesn't exist
             $billing = Billing::create([
                 'event_id' => $event->id,
                 'downpayment_amount' => $data['downpayment_amount'],
-                'total_amount' => $grandTotal, // Store the grand total
-                'status' => 'pending', // status can be 'pending', 'paid', etc.
+                'total_amount' => $grandTotal,
+                'status' => 'pending',
             ]);
         } else {
-            // Update the existing Billing record with downpayment amount and status
             $billing->downpayment_amount = $data['downpayment_amount'];
-            $billing->status = 'pending'; // Update the status as needed
+            $billing->status = 'pending';
             $billing->save();
         }
 
-        // Update event status to approved
         $event->status = 'approved';
         $event->save();
 
-        // Return a success message
         return back()->with('success', 'Event approved with downpayment recorded.');
     }
 
@@ -229,9 +222,9 @@ class AdminEventController extends Controller
     {
         $meeting = new Meeting();
         $meeting->event_id = $event->id;
-        $meeting->meeting_date = now()->addWeek();  // Schedule for a week later, adjust as needed
-        $meeting->location = 'Online (Zoom link here)';  // Customize location
-        $meeting->agenda = 'Event Preparation Meeting';  // Add an agenda
+        $meeting->meeting_date = now()->addWeek();
+        $meeting->location = 'Online (Zoom link here)';
+        $meeting->agenda = 'Event Preparation Meeting';
         $meeting->save();
     }
 

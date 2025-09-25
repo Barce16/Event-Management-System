@@ -229,7 +229,6 @@ class PackageController extends Controller
                 ->whereIn('id', $removeIds)
                 ->get()
                 ->each(function ($img) {
-                    // delete file if you store locally
                     if ($img->path ?? null) {
                         Storage::disk($img->disk ?? 'public')->delete($img->path);
                     }

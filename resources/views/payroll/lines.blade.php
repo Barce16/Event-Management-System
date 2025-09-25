@@ -24,7 +24,7 @@
                                 <th class="py-2 text-left">Staff</th>
                                 <th class="py-2 text-left">Rate</th>
                                 <th class="py-2 text-left">Pay Status</th>
-                                <th class="py-2 text-left">Actions</th> <!-- Added Actions column -->
+                                <th class="py-2 text-left">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -41,7 +41,6 @@
                                     </span>
                                 </td>
 
-                                <!-- Action Column with Mark as Paid -->
                                 <td class="py-2">
                                     @if($staff->pivot->pay_status !== 'paid')
                                     <form

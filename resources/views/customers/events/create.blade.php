@@ -3,7 +3,6 @@
         <h2 class="font-semibold text-xl text-gray-800">Request New Event</h2>
     </x-slot>
 
-    {{-- Expose package data for Alpine (prices, notes, etc.) --}}
     <script>
         window.__pkgData = {
       @foreach($packages as $p)

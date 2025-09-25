@@ -151,7 +151,6 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
-            {{-- Available Packages --}}
             @if(!empty($packages) && $packages->count())
             <div class="bg-white/0 shadow-sm rounded-lg p-6">
                 <h3 class="font-semibold text-xl mb-4">Available Packages</h3>
@@ -176,8 +175,6 @@
                     $incs = $p->inclusions ?? collect();
                     $sty = is_array($p->event_styling ?? null) ? $p->event_styling : [];
                     $price = $p->price ?? null;
-
-                    // Build 4 gallery images from DB with placeholders fallback
                     $g = [];
                     $dbImgs = $p->images ?? collect();
                     for ($i = 0; $i < 4; $i++) { $img=$dbImgs[$i] ?? null; $g[$i]=[ 'url'=> $img?->url ?:

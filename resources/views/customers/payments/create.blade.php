@@ -84,7 +84,6 @@
     </div>
 
     <script>
-        // Preview image before submitting
         function previewImage(event) {
             const previewContainer = document.getElementById('image-preview-container');
             const imagePreview = document.getElementById('image-preview');

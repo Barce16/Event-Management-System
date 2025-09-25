@@ -6,7 +6,6 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            {{-- Optional: error summary --}}
             @if ($errors->any())
             <div class="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 <div class="font-semibold mb-1">Please fix the following:</div>
@@ -74,7 +73,6 @@
                         <x-input-error :messages="$errors->get('password')" />
                     </div>
 
-                    {{-- Staff profile fields --}}
                     <div>
                         <x-input-label>Contact Number</x-input-label>
                         <x-text-input name="contact_number" value="{{ old('contact_number', $staff->contact_number) }}"

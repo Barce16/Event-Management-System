@@ -6,13 +6,11 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
-            {{-- Card --}}
             <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
                 <div class="flex items-center justify-start">
                     <a href="{{ route('staff.create') }}" class="px-3 py-2 bg-gray-800 text-white rounded">New Staff</a>
                 </div>
 
-                {{-- Filters / Search --}}
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-3">
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="Search name/email/role"
                         class="border rounded px-3 py-2 md:col-span-2">

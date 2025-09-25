@@ -6,7 +6,6 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
-            {{-- Filters --}}
             <form method="GET" class="bg-white p-4 rounded-lg shadow-sm grid grid-cols-1 md:grid-cols-7 gap-3">
                 <select name="status" class="border rounded px-3 py-2">
                     <option value="">All Status</option>
@@ -27,7 +26,6 @@
                 </div>
             </form>
 
-            {{-- Table --}}
             <div class="bg-white rounded-lg shadow-sm p-4 overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead class="text-gray-600">

@@ -29,7 +29,6 @@
                             Event: {{ $staffs->first()->event_name }} ({{
                             \Carbon\Carbon::parse($staffs->first()->event_date)->format('F j, Y') }})
                         </h3>
-                        <!-- View Button for each event -->
                         <a href="{{ route('admin.payroll.lines', ['eventId' => $eventId]) }}"
                             class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500">
                             View Lines

@@ -39,7 +39,6 @@
                         </div>
                     </div>
 
-                    <!-- Buttons section aligned to the bottom right using Flexbox -->
                     <div class="flex justify-end gap-4 mt-8">
                         <form method="POST" action="{{ route('admin.payments.approve', $event->id) }}">
                             @csrf

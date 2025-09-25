@@ -243,7 +243,6 @@
                     $sty = is_array($p->event_styling ?? null) ? $p->event_styling : [];
                     $price = $p->price ?? null;
 
-                    // Build 4 gallery images from DB with placeholders fallback
                     $g = [];
                     $dbImgs = $p->images ?? collect();
                     for ($i = 0; $i < 4; $i++) { $img=$dbImgs[$i] ?? null; $g[$i]=[ 'url'=> $img?->url ?:
@@ -255,9 +254,7 @@
 
                         <div
                             class="rounded-2xl overflow-hidden bg-white ring-1 {{ $c['ring'] }} shadow-sm hover:shadow-md transition">
-                            {{-- Make children stretch to same height on both columns --}}
                             <div class="p-4 grid gap-4 lg:grid-cols-3 items-stretch">
-                                {{-- LEFT: Package content --}}
                                 <div class="space-y-4 flex flex-col">
                                     <div class="p-4 bg-gradient-to-br {{ $c['grad'] }} text-white rounded-t-lg">
                                         <div class="flex items-start justify-between gap-3">
@@ -363,16 +360,13 @@
                                     </div>
                                 </div>
 
-                                {{-- RIGHT: Gallery fills height using fixed rows --}}
                                 <div class="lg:col-span-2">
                                     <div class="grid grid-cols-2 gap-2 h-full">
-                                        {{-- Hero (top wide) --}}
                                         <figure class="col-span-2 aspect-[16/9] rounded-xl overflow-hidden relative">
                                             <img src="{{ $g[0]['url'] }}" alt="{{ $g[0]['alt'] }}"
                                                 class="w-full h-full object-cover block" loading="lazy">
                                         </figure>
 
-                                        {{-- Two mediums side-by-side --}}
                                         <figure class="aspect-[4/3] rounded-xl overflow-hidden relative">
                                             <img src="{{ $g[1]['url'] }}" alt="{{ $g[1]['alt'] }}"
                                                 class="w-full h-full object-cover block" loading="lazy">
@@ -382,7 +376,6 @@
                                                 class="w-full h-full object-cover block" loading="lazy">
                                         </figure>
 
-                                        {{-- Footer wide --}}
                                         <figure class="col-span-2 aspect-[16/6] rounded-xl overflow-hidden relative">
                                             <img src="{{ $g[3]['url'] }}" alt="{{ $g[3]['alt'] }}"
                                                 class="w-full h-full object-cover block" loading="lazy">

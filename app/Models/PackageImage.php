@@ -13,7 +13,6 @@ class PackageImage extends Model
         return $this->belongsTo(Package::class);
     }
 
-    // Helper: full public URL
     public function getUrlAttribute(): string
     {
         return asset('storage/' . $this->path);
