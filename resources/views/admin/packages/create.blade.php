@@ -115,19 +115,26 @@
 
                 {{-- Coordination / Event Styling --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
+                    <div class="md:col-span-2 relative">
                         <x-input-label>Coordination Price</x-input-label>
-                        <x-text-input type="number" step="0.01" min="0" name="coordination_price" class="w-full"
+                        <div class="absolute left-2 top-1/2 transform">
+                            <span class="text-lg text-emerald-600">₱</span>
+                        </div>
+                        <x-text-input type="number" step="0.01" min="0" name="coordination_price" class="w-full pl-7"
                             x-model.number="coordinationPrice" />
                         <x-input-error :messages="$errors->get('coordination_price')" />
                     </div>
 
-                    <div>
+                    <div class="md:col-span-2 relative">
                         <x-input-label>Event Styling Price</x-input-label>
-                        <x-text-input type="number" step="0.01" min="0" name="event_styling_price" class="w-full"
+                        <div class="absolute left-2 top-1/2 transform">
+                            <span class="text-lg text-emerald-600">₱</span>
+                        </div>
+                        <x-text-input type="number" step="0.01" min="0" name="event_styling_price" class="w-full pl-7"
                             x-model.number="eventStylingPrice" />
                         <x-input-error :messages="$errors->get('event_styling_price')" />
                     </div>
+
                 </div>
 
                 <div>
@@ -157,9 +164,16 @@ Aisle decor">{{ old('event_styling_text') }}</textarea>
                 {{-- Package Price --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <x-input-label for="price" value="Package Price" />
-                        <x-text-input id="price" name="price" type="number" step="0.01" class="mt-1 block w-full"
-                            x-model.number="packagePrice" x-bind:readonly="autoCalc" />
+                        <div class="md:col-span-2 relative">
+                            <x-input-label for="price" value="Package Price" />
+                            <div class="absolute left-2 top-1/2 transform">
+                                <span class="text-lg text-emerald-600">₱</span>
+                            </div>
+                            <x-text-input id="price" name="price" type="number" step="0.01"
+                                class="mt-1 block w-full pl-7" x-model.number="packagePrice"
+                                x-bind:readonly="autoCalc" />
+                            <x-input-error :messages="$errors->get('price')" class="mt-2" />
+                        </div>
                         <div class="mt-2 flex items-center gap-2 text-sm">
                             <input type="checkbox" class="rounded border-gray-300" x-model="autoCalc" id="autoCalc">
                             <label for="autoCalc">Auto-calc from inclusions + coordination + styling</label>
