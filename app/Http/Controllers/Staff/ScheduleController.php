@@ -14,23 +14,14 @@ class ScheduleController extends Controller
         $user  = $request->user();
         $staff = Staff::where('user_id', $user->id)->firstOrFail();
 
-        $q = $staff->events()->with(['customer', 'package'])->orderBy('event_date');
+        $eventsQuery = $staff->events()->with(['customer', 'package'])->orderBy('event_date');
 
-        if ($status = $request->string('status')->toString()) {
-            $q->where('status', $status);
-        }
-        if ($from = $request->date('from')) {
-            $q->whereDate('event_date', '>=', $from);
-        }
-        if ($to = $request->date('to')) {
-            $q->whereDate('event_date', '<=', $to);
-        }
+        $eventsQuery->when($request->status, fn($query, $status) => $query->where('status', $status))
+            ->when($request->from, fn($query, $from) => $query->whereDate('event_date', '>=', $from))
+            ->when($request->to, fn($query, $to) => $query->whereDate('event_date', '<=', $to))
+            ->when(!$request->has('from') && !$request->has('to'), fn($query) => $query->whereDate('event_date', '>=', now()->toDateString()));
 
-        if (!$request->has('from') && !$request->has('to')) {
-            $q->whereDate('event_date', '>=', now()->toDateString());
-        }
-
-        $events = $q->paginate(10);
+        $events = $eventsQuery->paginate(10);
 
         return view('staff.schedule.index', compact('events', 'staff'));
     }
@@ -42,7 +33,6 @@ class ScheduleController extends Controller
         if (!$event->staffs->contains('id', $staff->id)) {
             abort(403, 'You are not assigned to this event.');
         }
-
 
         $event->load(['customer', 'package', 'vendors', 'staffs.user']);
 

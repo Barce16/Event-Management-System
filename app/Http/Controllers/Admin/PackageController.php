@@ -170,6 +170,7 @@ class PackageController extends Controller
             'remove_image_ids.*' => ['integer', 'exists:package_images,id'],
         ]);
 
+
         $eventStylingArray = collect(preg_split('/\r\n|\r|\n/', $data['event_styling_text'] ?? ''))
             ->map(fn($s) => trim($s))
             ->filter()
@@ -206,10 +207,9 @@ class PackageController extends Controller
         $remaining   = $existingCnt - count($removeIds);
         $totalAfter  = $remaining + count($newFiles);
 
-
         if ($totalAfter < 4) {
             return back()
-                ->withErrors(['images' => 'Each package must have at least 4 images.'])
+                ->withErrors(['images' => 'Package must have at least 4 images.'])
                 ->withInput();
         }
 
@@ -255,7 +255,6 @@ class PackageController extends Controller
             ->route('admin.management.packages.index')
             ->with('success', 'Package updated.');
     }
-
 
     public function destroy(Package $package)
     {

@@ -27,6 +27,7 @@ class PaymentController extends Controller
 
         return view('customers.payments.index', compact('payments'));
     }
+
     public function create(Event $event)
     {
         return view('customers.payments.create', compact('event'));

@@ -25,15 +25,12 @@ use Illuminate\Support\Facades\Route;
 use App\Models\Package;
 
 Route::get('/', function () {
-    $packages = Package::with([
-        'vendors:id,name,category,price',
-        'inclusions'
-    ])
-        ->where('is_active', true)
-        ->orderBy('price')
-        ->get();
-    return view('welcome', compact('packages'));
+    return view('welcome');
 });
+
+Route::get('/events', function () {
+    return view('events');
+})->name('events.index');
 
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
