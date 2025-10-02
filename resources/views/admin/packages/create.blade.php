@@ -56,7 +56,7 @@
                     <h4 class="font-semibold text-base">Inclusions</h4>
 
                     {{-- Picker --}}
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div class="grid grid-cols-1 gap-2">
                         @foreach($inclusions as $inc)
                         <label
                             class="flex items-center justify-between gap-3 border rounded px-3 py-2 hover:bg-gray-50">

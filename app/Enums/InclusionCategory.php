@@ -16,6 +16,7 @@ enum InclusionCategory: string
     case DECORATION = 'Decoration';
     case LIGHTS_SOUNDS = 'Lights & Sounds';
     case TRANSPORTATION = 'Transportation';
+    case GOWN = 'Gown';
     case OTHER = 'Other';
 
     public function label(): string
