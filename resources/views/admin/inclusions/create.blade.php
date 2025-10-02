@@ -1,5 +1,5 @@
 <x-admin.layouts.management>
-    <form method="POST" action="{{ route('admin.management.inclusions.store') }}"
+    <form method="POST" action="{{ route('admin.management.inclusions.store') }}" enctype="multipart/form-data"
         class="bg-white rounded shadow p-6 space-y-4">
         @csrf
 
@@ -11,8 +11,38 @@
             </div>
 
             <div>
-                <x-input-label>Category (optional)</x-input-label>
-                <x-text-input name="category" class="w-full" value="{{ old('category') }}" />
+                <label for="category" class="block text-sm font-medium text-gray-700">Category *</label>
+                <select name="category" id="category" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Select Category</option>
+                    @foreach(\App\Enums\InclusionCategory::cases() as $category)
+                    <option value="{{ $category->value }}" {{ old('category')==$category->value ? 'selected' : '' }}>
+                        {{ $category->label() }}
+                    </option>
+                    @endforeach
+                </select>
+                @error('category')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <label for="image" class="block text-sm font-medium text-gray-700">Image</label>
+                <input type="file" name="image" id="image" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 
+               file:mr-4 file:py-2 file:px-4 file:rounded-md 
+               file:border-0 file:text-sm file:font-semibold 
+               file:bg-indigo-50 file:text-indigo-700 
+               hover:file:bg-indigo-100">
+
+                <!-- Image Preview -->
+                <div class="mt-3">
+                    <img id="imagePreview" class="hidden w-32 h-32 object-cover rounded-lg border" />
+                    <p id="previewLabel" class="hidden text-xs text-gray-500 mt-1">Preview</p>
+                </div>
+
+                @error('image')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
             </div>
 
             <div>
@@ -69,4 +99,27 @@
             </button>
         </div>
     </form>
+
+    <script>
+        const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewLabel = document.getElementById('previewLabel');
+
+    imageInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                imagePreview.classList.remove('hidden');
+                previewLabel.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreview.src = '';
+            imagePreview.classList.add('hidden');
+            previewLabel.classList.add('hidden');
+        }
+    });
+    </script>
 </x-admin.layouts.management>

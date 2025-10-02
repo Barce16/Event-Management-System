@@ -34,10 +34,19 @@
             </div>
 
             <div>
-                <x-input-label for="description" value="Description" />
-                <textarea id="description" name="description" rows="3"
-                    class="mt-1 w-full border rounded px-3 py-2">{{ old('description') }}</textarea>
-                <x-input-error :messages="$errors->get('description')" class="mt-2" />
+                <label for="type" class="block text-sm font-medium">Package Type</label>
+                <select name="type" id="type" required class="mt-1 block w-full rounded-md border-gray-300">
+                    <option value="">Select Type</option>
+                    @foreach(\App\Enums\PackageType::cases() as $type)
+                    <option value="{{ $type->value }}" {{ old('type', $package->type ?? '') == $type->value ? 'selected'
+                        : '' }}>
+                        {{ $type->label() }}
+                    </option>
+                    @endforeach
+                </select>
+                @error('type')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
             </div>
 
             {{-- Pricing + Inclusions (Alpine scope) --}}

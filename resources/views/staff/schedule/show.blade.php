@@ -48,7 +48,7 @@
                     </div>
                     <div>
                         <div class="text-gray-500">Guests</div>
-                        <div>{{ $event->guest_count ?: '—' }}</div>
+                        <div>{{ $event->guests ?: '—' }}</div>
                     </div>
                 </div>
 

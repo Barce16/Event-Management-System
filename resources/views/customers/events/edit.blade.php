@@ -220,87 +220,16 @@
                         </div>
                     </div>
 
-                    {{-- Guests Editor --}}
-                    <div class="mt-8" x-data="guestsEditor(@js($seedGuests))" x-init="init()">
-                        <div class="flex items-center justify-between">
-                            <h3 class="font-semibold">
-                                Guests (<span x-text="count()"></span>)
-                            </h3>
-                            <button type="button" @click="addDraft()" class="px-3 py-2 border rounded text-sm">Add
-                                Guest</button>
-                        </div>
-
-                        {{-- Draft row for adding --}}
-                        <div class="grid grid-cols-1 md:grid-cols-5 gap-2 border p-4 mt-3 rounded-lg bg-cyan-800/10">
-                            <div class="md:col-span-3">
-                                <x-input-label>Name</x-input-label>
-                                <input type="text" class="w-full border rounded px-3 py-2" x-model="draft.name" />
-                            </div>
-                            <div class="md:col-span-2">
-                                <x-input-label>Email</x-input-label>
-                                <input type="email" class="w-full border rounded px-3 py-2" x-model="draft.email" />
-                            </div>
-                            <div class="md:col-span-2">
-                                <x-input-label>Contact</x-input-label>
-                                <input type="text" class="w-full border rounded px-3 py-2"
-                                    x-model="draft.contact_number" />
-                            </div>
-                            <div class="md:col-span-2">
-                                <x-input-label>Party Size</x-input-label>
-                                <input type="number" min="1" class="w-full border rounded px-3 py-2"
-                                    x-model.number="draft.party_size" />
-                            </div>
-                            <div class="md:col-span-1 flex items-end">
-                                <button type="button" @click="commitDraft()"
-                                    class="px-3 py-2 bg-gray-800 text-white rounded w-full md:w-auto">Add</button>
-                            </div>
-                        </div>
-
-                        {{-- Existing + newly added guests --}}
-                        <template x-for="(g, i) in items" :key="g._key">
-                            <div
-                                class="grid grid-cols-1 md:grid-cols-5 gap-2 border p-4 mt-3 rounded-lg bg-slate-800/20">
-                                <template x-if="g.id">
-                                    <input type="hidden" :name="`guests[${i}][id]`" :value="g.id">
-                                </template>
-                                <div class="md:col-span-3">
-                                    <x-input-label>Name</x-input-label>
-                                    <input type="text" class="w-full border rounded px-3 py-2"
-                                        :name="`guests[${i}][name]`" x-model="g.name" />
-                                </div>
-                                <div class="md:col-span-2">
-                                    <x-input-label>Email</x-input-label>
-                                    <input type="email" class="w-full border rounded px-3 py-2"
-                                        :name="`guests[${i}][email]`" x-model="g.email" />
-                                </div>
-                                <div class="md:col-span-2">
-                                    <x-input-label>Contact</x-input-label>
-                                    <input type="text" class="w-full border rounded px-3 py-2"
-                                        :name="`guests[${i}][contact_number]`" x-model="g.contact_number" />
-                                </div>
-                                <div class="md:col-span-2">
-                                    <x-input-label>Party Size</x-input-label>
-                                    <input type="number" min="1" class="w-full border rounded px-3 py-2"
-                                        :name="`guests[${i}][party_size]`" x-model.number="g.party_size" />
-                                </div>
-                                <div class="md:col-span-1 text-right flex items-end justify-center">
-                                    <button type="button" @click="remove(i)"
-                                        class="px-4 py-2 bg-red-700 text-white rounded">Remove</button>
-                                </div>
-                            </div>
-                        </template>
-
-                        {{-- Removed existing guest IDs --}}
-                        <template x-for="rid in removedIds" :key="`rid-${rid}`">
-                            <input type="hidden" name="guests_remove[]" :value="rid">
-                        </template>
-
-                        {{-- Validation errors from backend --}}
-                        <x-input-error :messages="$errors->get('guests')" class="mt-2" />
-                        <x-input-error :messages="$errors->get('guests.*.name')" class="mt-1" />
-                        <x-input-error :messages="$errors->get('guests.*.email')" class="mt-1" />
-                        <x-input-error :messages="$errors->get('guests.*.contact_number')" class="mt-1" />
-                        <x-input-error :messages="$errors->get('guests.*.party_size')" class="mt-1" />
+                    <div>
+                        <label for="guests" class="block text-sm font-medium text-gray-700">Guest List/Details</label>
+                        <textarea name="guests" id="guests" rows="4"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            placeholder="Enter guest names, count, or special requirements...">{{ old('guests', $event->guests) }}</textarea>
+                        <p class="mt-1 text-sm text-gray-500">You can list guest names, total count, or any special
+                            guest requirements</p>
+                        @error('guests')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     {{-- Actions --}}

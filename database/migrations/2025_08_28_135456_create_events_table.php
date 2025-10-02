@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('venue', 255)->nullable();
             $table->string('theme', 120)->nullable();
             $table->decimal('budget', 12, 2)->nullable();
-            $table->unsignedInteger('guest_count')->nullable();
+            $table->unsignedInteger('guests')->nullable();
             $table->enum('status', ['requested', 'approved', 'scheduled', 'completed', 'cancelled'])->default('requested');
             $table->text('notes')->nullable();
             $table->timestamps();

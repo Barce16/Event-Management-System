@@ -34,7 +34,7 @@ class ScheduleController extends Controller
             abort(403, 'You are not assigned to this event.');
         }
 
-        $event->load(['customer', 'package', 'vendors', 'staffs.user']);
+        $event->load(['customer', 'package', 'staffs.user']);
 
         return view('staff.schedule.show', compact('event', 'staff'));
     }

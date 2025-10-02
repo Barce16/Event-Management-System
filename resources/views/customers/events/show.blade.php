@@ -12,64 +12,178 @@
 
 
     <div class="py-6">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             {{-- Summary --}}
             <div class="bg-white rounded-lg shadow-sm p-6">
                 {{-- Display Downpayment Request if Event is Approved --}}
+                {{-- Approved - Awaiting Downpayment --}}
                 @if($event->status === 'approved')
-                <div class="bg-yellow-100 text-yellow-800 p-2 rounded-lg mb-5">
-                    <div class="font-semibold text-lg">Please pay your downpayment to proceed with the scheduling of the
-                        meeting.</div>
-                    @if($event->billing)
-                    <div class="mt-2">
-                        Downpayment Amount: <strong>₱{{ number_format($event->billing->downpayment_amount, 2)
-                            }}</strong>
-                    </div>
-                    @else
-                    <div class="mt-2 text-red-500">No billing information available for this event.</div>
-                    @endif
+                <div
+                    class="bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-500 rounded-lg shadow-sm overflow-hidden mb-6">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-amber-900 mb-2">Booking Approved - Payment Required
+                                </h3>
+                                <p class="text-amber-800 mb-3">Your event has been approved! Please submit your
+                                    downpayment to proceed with scheduling your meeting.</p>
 
-                    <div class="my-4">
-                        <a href="{{ route('customer.payments.create', ['event' => $event->id]) }}"
-                            class="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-600">
-                            Pay Now
-                        </a>
+                                @if($event->billing)
+                                <div class="bg-white/60 rounded-lg p-4 mb-4">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-amber-900">Downpayment Amount:</span>
+                                        <span class="text-2xl font-bold text-amber-900">₱{{
+                                            number_format($event->billing->downpayment_amount, 2) }}</span>
+                                    </div>
+                                </div>
+                                @else
+                                <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                                    <p class="text-sm text-red-700">⚠️ No billing information available. Please contact
+                                        us.</p>
+                                </div>
+                                @endif
+
+                                <a href="{{ route('customer.payments.create', ['event' => $event->id]) }}"
+                                    class="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors shadow-md hover:shadow-lg">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    Submit Payment Now
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 @endif
-                {{-- Display Downpayment Request if Event is Meeting --}}
+
+                {{-- Meeting Status - Downpayment Confirmed --}}
                 @if($event->status === 'meeting')
-                <div class="bg-blue-100 text-blue-800 p-4 rounded-lg mb-5">
-                    <div class="font-semibold text-lg">Your downpayment has been confirmed. Please contact us to
-                        schedule the meeting.</div>
-                    <div class="mt-2">
-                        For scheduling, please reach us at: <strong>09173062531</strong>
+                <div
+                    class="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg shadow-sm overflow-hidden mb-6">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-blue-900 mb-2">Payment Confirmed - Schedule Your
+                                    Meeting</h3>
+                                <p class="text-blue-800 mb-3">Your downpayment has been confirmed. Let's
+                                    schedule a meeting to finalize the details of your event.</p>
+
+                                <div class="bg-white/60 rounded-lg p-4 mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        </svg>
+                                        <div>
+                                            <p class="text-sm text-blue-900 font-medium">Contact us to schedule:</p>
+                                            <a href="tel:09173062531"
+                                                class="text-lg font-bold text-blue-700 hover:text-blue-800">0917 306
+                                                2531</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-3">
+                                    <a href="tel:09173062531"
+                                        class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        </svg>
+                                        Call Now
+                                    </a>
+                                    <a href="mailto:michaelhoevents@gmail.com"
+                                        class="inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-700 font-semibold rounded-lg hover:bg-blue-50 transition-colors border-2 border-blue-200">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                        Email Us
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 @endif
 
-                {{-- Display Downpayment Rejected Message --}}
+                {{-- Payment Rejected --}}
                 @if($event->billing && $event->billing->downpayment_amount > 0 &&
                 $event->billing->payment()->where('status', 'rejected')->exists())
-                <div class="bg-red-100 text-red-800 p-4 rounded-lg mb-5">
-                    <div class="font-semibold text-lg">Your downpayment has been rejected. Please contact us for further
-                        details.</div>
+                <div
+                    class="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 rounded-lg shadow-sm overflow-hidden mb-6">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-red-900 mb-2">Payment Verification Issue</h3>
+                                <p class="text-red-800 mb-3">We couldn't verify your payment. Please check the details
+                                    and resubmit, or contact us for assistance.</p>
 
-                    @if($event->billing)
-                    <div class="mt-2">
-                        Downpayment Amount: <strong>₱{{ number_format($event->billing->downpayment_amount, 2)
-                            }}</strong>
-                    </div>
-                    @else
-                    <div class="mt-2 text-red-500">No billing information available for this event.</div>
-                    @endif
+                                @if($event->billing)
+                                <div class="bg-white/60 rounded-lg p-4 mb-4">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-red-900">Required Amount:</span>
+                                        <span class="text-2xl font-bold text-red-900">₱{{
+                                            number_format($event->billing->downpayment_amount, 2) }}</span>
+                                    </div>
+                                </div>
+                                @else
+                                <div class="bg-red-100 border border-red-200 rounded-lg p-3 mb-4">
+                                    <p class="text-sm text-red-700">⚠️ No billing information available. Please contact
+                                        us.</p>
+                                </div>
+                                @endif
 
-                    <div class="my-4">
-                        <a href="{{ route('customer.payments.create', ['event' => $event->id]) }}"
-                            class="px-4 py-2 bg-rose-950 text-white rounded hover:bg-rose-600">
-                            Pay Now
-                        </a>
+                                <div class="flex gap-3">
+                                    <a href="{{ route('customer.payments.create', ['event' => $event->id]) }}"
+                                        class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors shadow-md hover:shadow-lg">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        Resubmit Payment
+                                    </a>
+                                    <a href="tel:09173062531"
+                                        class="inline-flex items-center gap-2 px-6 py-3 bg-white text-red-700 font-semibold rounded-lg hover:bg-red-50 transition-colors border-2 border-red-200">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        </svg>
+                                        Contact Support
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 @endif
@@ -101,6 +215,12 @@
                     <div>
                         <div class="text-gray-600 text-sm">Theme</div>
                         <div class="font-medium">{{ $event->theme ?: '—' }}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-600 font-semibold">Guests:</span>
+                        <div class="mt-1 text-gray-700 whitespace-pre-line text-sm">{{ $event->guests ?? 'Not specified'
+                            }}
+                        </div>
                     </div>
                     <div class="md:col-span-2">
                         <div class="text-gray-600 text-sm">Notes</div>

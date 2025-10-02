@@ -11,69 +11,154 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             {{-- Payment Form --}}
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h3 class="font-semibold text-lg">Submit Payment Proof</h3>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                {{-- Header --}}
+                <div class="bg-gradient-to-r from-emerald-600 to-green-600 px-8 py-6">
+                    <h3 class="text-2xl font-bold text-white">Submit Payment Proof</h3>
+                    <p class="text-emerald-100 text-sm mt-1">Upload your payment receipt for verification</p>
+                </div>
 
+                {{-- Event & Billing Info --}}
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 px-8 py-6 border-b border-gray-200">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Event</p>
+                                <p class="text-lg font-bold text-gray-900">{{ $event->name }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Downpayment Due
+                                    Amount
+                                </p>
+                                <p class="text-2xl font-bold text-green-600">
+                                    @if ($event->billing)
+                                    ₱{{ number_format($event->billing->downpayment_amount, 2) }}
+                                    @else
+                                    ₱0.00
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Form --}}
                 <form method="POST" action="{{ route('customer.payments.store', $event) }}"
-                    enctype="multipart/form-data">
+                    enctype="multipart/form-data" class="px-8 py-8">
                     @csrf
 
-                    <div class="mt-4">
-                        <div class="text-gray-600 text-sm">Event: <strong>{{ $event->name }}</strong></div>
+                    <div class="space-y-6">
+                        {{-- Payment Amount --}}
+                        <div>
+                            <label for="amount" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Amount Paid <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">₱</span>
+                                <input id="amount" name="amount" type="number" step="0.01" min="0"
+                                    value="{{ old('amount', $event->billing->downpayment_amount ?? 0) }}"
+                                    class="block w-full pl-8 pr-4 py-3 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition bg-white text-lg font-semibold"
+                                    required />
+                            </div>
+                            @error('amount')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                        @if ($event->billing)
-                        <div class="text-gray-600 text-sm">Downpayment Due: <strong>₱{{
-                                number_format($event->billing->downpayment_amount, 2) }}</strong></div>
-                        @else
-                        <div class="text-gray-600 text-sm">Downpayment Due: <strong>₱0.00</strong></div>
-                        @endif
-                    </div>
+                        {{-- Payment Method --}}
+                        <div>
+                            <label for="payment_method" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Payment Method <span class="text-red-500">*</span>
+                            </label>
+                            <select id="payment_method" name="payment_method"
+                                class="block w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition bg-white"
+                                required>
+                                <option value="">Select payment method</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="gcash">GCash</option>
+                                <option value="paymaya">PayMaya</option>
+                                <option value="physical_payment">Physical Payment (Cash)</option>
+                            </select>
+                            @error('payment_method')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    {{-- File Upload --}}
-                    <div class="mt-4">
-                        <x-input-label for="payment_receipt" value="Payment Proof" />
-                        <input id="payment_receipt" name="payment_receipt" type="file" class="mt-1 block w-full"
-                            required onchange="previewImage(event)" />
-                        @error('payment_receipt')
-                        <span class="text-sm text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
+                        {{-- File Upload --}}
+                        <div>
+                            <label for="payment_receipt" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Payment Receipt / Proof <span class="text-red-500">*</span>
+                            </label>
+                            <div class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-emerald-400 transition-colors cursor-pointer bg-gray-50"
+                                onclick="document.getElementById('payment_receipt').click()">
+                                <div class="space-y-2 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
+                                        viewBox="0 0 48 48">
+                                        <path
+                                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="text-sm text-gray-600">
+                                        <label for="payment_receipt"
+                                            class="relative cursor-pointer rounded-md font-medium text-emerald-600 hover:text-emerald-500">
+                                            <span>Upload a file</span>
+                                        </label>
+                                        <p class="pl-1 inline">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">PNG, JPG, JPEG up to 10MB</p>
+                                </div>
+                            </div>
+                            <input id="payment_receipt" name="payment_receipt" type="file" class="hidden"
+                                accept="image/png,image/jpeg,image/jpg" required onchange="previewImage(event)" />
+                            @error('payment_receipt')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    {{-- Image Preview --}}
-                    <div class="mt-4" id="image-preview-container" style="display: none;">
-                        <h4 class="font-semibold text-sm">Preview of Payment Proof:</h4>
-                        <img id="image-preview" class="mt-2 w-full max-w-xs" />
-                    </div>
-
-                    {{-- Amount to Pay --}}
-                    <div class="mt-4">
-                        <x-input-label for="amount" value="Amount to Pay (₱)" />
-                        <input id="amount" name="amount" type="number" step="0.01" min="0"
-                            value="{{ old('amount', $event->downpayment_amount) }}" class="mt-1 block w-full"
-                            required />
-                        @error('amount')
-                        <span class="text-sm text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    {{-- Payment Method --}}
-                    <div class="mt-4">
-                        <x-input-label for="payment_method" value="Payment Method" />
-                        <select id="payment_method" name="payment_method" class="mt-1 block w-full" required>
-                            <option value="bank_transfer">Bank Transfer</option>
-                            <option value="gcash">GCash</option>
-                            <option value="paypal">PayPal</option>
-                            <option value="physical_payment">Physical Payment (In-Hand)</option>
-                        </select>
-
-                        @error('payment_method')
-                        <span class="text-sm text-red-500">{{ $message }}</span>
-                        @enderror
+                        {{-- Image Preview --}}
+                        <div id="image-preview-container" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Preview</label>
+                            <div class="relative rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50 p-4">
+                                <img id="image-preview" class="max-w-full h-auto rounded-lg shadow-md mx-auto" />
+                                <button type="button" onclick="removeImage()"
+                                    class="absolute top-6 right-6 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow-lg">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Submit Button --}}
-                    <div class="mt-6 flex justify-end">
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    <div class="mt-8 flex gap-4">
+                        <a href="{{ route('customer.events.show', $event) }}"
+                            class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 text-center font-semibold rounded-lg hover:bg-gray-300 transition">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                            class="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold rounded-lg hover:from-emerald-700 hover:to-green-700 transition shadow-md hover:shadow-lg">
                             Submit Payment Proof
                         </button>
                     </div>
@@ -82,25 +167,31 @@
 
         </div>
     </div>
-
     <script>
         function previewImage(event) {
-            const previewContainer = document.getElementById('image-preview-container');
-            const imagePreview = document.getElementById('image-preview');
-            
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                imagePreview.src = e.target.result;
-                previewContainer.style.display = 'block';
-            };
-
-            if (file) {
-                reader.readAsDataURL(file);
-            } else {
-                previewContainer.style.display = 'none';
-            }
+        const previewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        
+        const file = event.target.files[0];
+        if (!file) {
+            previewContainer.classList.add('hidden');
+            return;
         }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            previewContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeImage() {
+        const fileInput = document.getElementById('payment_receipt');
+        const previewContainer = document.getElementById('image-preview-container');
+        
+        fileInput.value = '';
+        previewContainer.classList.add('hidden');
+    }
     </script>
 </x-app-layout>

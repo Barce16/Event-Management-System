@@ -71,10 +71,20 @@
             </figure>
         </div>
 
-        {{-- Description --}}
+        {{-- Type --}}
         <div>
-            <div class="text-gray-600 text-sm mb-1">Description</div>
-            <div class="whitespace-pre-line">{{ $package->description ?: '—' }}</div>
+            <span class="text-gray-600">Type:</span>
+            @if($package->type instanceof \App\Enums\PackageType)
+            <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $package->type->color() }}">
+                {{ $package->type->label() }}
+            </span>
+            @else
+            <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">
+                {{ $package->type ?? 'N/A' }}
+            </span>
+            @endif
         </div>
 
         {{-- Inclusions (notes now come from Inclusion model, not pivot) --}}

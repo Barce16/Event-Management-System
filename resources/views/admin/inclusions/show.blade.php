@@ -16,8 +16,14 @@
             </div>
 
             <div>
-                <dt class="text-sm font-medium text-gray-500">Category</dt>
-                <dd class="mt-1 text-base text-gray-900">{{ $inclusion->category ?? '—' }}</dd>
+                @if($inclusion->category)
+                <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    {{ $inclusion->category->label() }}
+                </span>
+                @else
+                <span class="text-gray-400 text-sm">No category</span>
+                @endif
             </div>
 
             <div>

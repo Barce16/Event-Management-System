@@ -10,7 +10,12 @@ use App\Models\Package;
 use App\Models\Payment;
 use App\Models\Meeting;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Notifications\EventApprovedNotification;
+use App\Notifications\EventRejectedNotification;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 class AdminEventController extends Controller
 {
@@ -116,18 +121,62 @@ class AdminEventController extends Controller
             ]);
         } else {
             $billing->downpayment_amount = $data['downpayment_amount'];
+            $billing->total_amount = $grandTotal; // Make sure to update total
             $billing->status = 'pending';
             $billing->save();
+        }
+
+        // Refresh billing to get latest data
+        $billing->refresh();
+
+        // Create user account if customer doesn't have one
+        $customer = $event->customer;
+        $user = null;
+        $password = '12345678';
+        $username = null;
+
+        if (!$customer->user_id) {
+            $baseName = Str::slug(Str::lower($customer->customer_name));
+            $username = $baseName;
+
+            $counter = 1;
+            while (User::where('username', $username)->exists()) {
+                $username = $baseName . $counter;
+                $counter++;
+            }
+
+            $user = User::create([
+                'name' => $customer->customer_name,
+                'username' => $username,
+                'email' => $customer->email,
+                'password' => Hash::make($password),
+                'user_type' => 'customer',
+                'status' => 'active',
+            ]);
+
+            $customer->user_id = $user->id;
+            $customer->save();
+        } else {
+            $user = $customer->user;
+            $username = $user->username;
+            $password = null;
         }
 
         $event->status = 'approved';
         $event->save();
 
-        return back()->with('success', 'Event approved with downpayment recorded.');
+        // Send email notification
+        if ($password && $user) {
+            try {
+                // Pass the refreshed billing data
+                $user->notify(new EventApprovedNotification($event, $username, $password, $billing));
+            } catch (\Exception $e) {
+                return back()->with('warning', 'Event approved but failed to send email notification. Please contact the customer manually.');
+            }
+        }
+
+        return back()->with('success', 'Event approved! ' . ($password ? 'Account credentials sent to customer via email.' : 'Customer notified via email.'));
     }
-
-
-
     public function reject(Request $request, Event $event)
     {
         $data = $request->validate([
@@ -139,7 +188,18 @@ class AdminEventController extends Controller
             'rejection_reason' => $data['rejection_reason'],
         ]);
 
-        return back()->with('success', 'Event rejected.');
+        // Send rejection email to customer
+        $customer = $event->customer;
+
+        try {
+            // Send to customer's email directly (no user account needed)
+            Notification::route('mail', $customer->email)
+                ->notify(new EventRejectedNotification($event, $data['rejection_reason']));
+        } catch (\Exception $e) {
+            return back()->with('warning', 'Event rejected but failed to send email notification. Please contact the customer manually.');
+        }
+
+        return back()->with('success', 'Event rejected and notification sent to customer.');
     }
 
     public function confirm(Request $request, Event $event)

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PackageType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ class Package extends Model
     protected $fillable = [
         'name',
         'slug',
-        'description',
+        'type' => PackageType::class,
         'price',
         'is_active',
         'event_styling',
@@ -22,14 +23,6 @@ class Package extends Model
         'event_styling_price',
 
     ];
-
-
-    public function vendors()
-    {
-        return $this->belongsToMany(Vendor::class)
-            ->withPivot(['price_override'])
-            ->withTimestamps();
-    }
 
     public function events()
     {

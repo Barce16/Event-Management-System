@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Inclusion;
 use App\Models\Package;
-use App\Models\Vendor;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -25,7 +24,7 @@ class PackageController extends Controller
                 $q,
                 fn($s) =>
                 $s->where('name', 'like', "%{$q}%")
-                    ->orWhere('description', 'like', "%{$q}%")
+                    ->orWhere('type', 'like', "%{$q}%")
             )
             ->orderBy('name')
             ->paginate(12)
@@ -36,9 +35,8 @@ class PackageController extends Controller
 
     public function create()
     {
-        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
         $inclusions = Inclusion::where('is_active', true)->orderBy('name')->get();
-        return view('admin.packages.create', compact('vendors', 'inclusions'));
+        return view('admin.packages.create', compact('inclusions'));
     }
 
     public function store(Request $request)
@@ -51,7 +49,7 @@ class PackageController extends Controller
                 'unique:packages,name',
                 'regex:/^[A-Za-z0-9 \-]+$/',
             ],
-            'description' => ['nullable', 'string'],
+            'type' => ['required', 'string'],
 
             'price' => ['required', 'numeric', 'min:0', 'regex:/^\d+(\.\d+)?$/'],
             'is_active' => ['sometimes', 'boolean'],
@@ -82,7 +80,7 @@ class PackageController extends Controller
             $package = Package::create([
                 'name'                 => $data['name'],
                 'slug'                 => Str::slug($data['name']),
-                'description'          => $data['description'] ?? null,
+                'type'                 => $data['type'],
                 'price'                => $data['price'],
                 'is_active'            => $request->boolean('is_active', true),
                 'event_styling'        => $eventStylingArray,
@@ -126,7 +124,6 @@ class PackageController extends Controller
 
     public function show(Package $package)
     {
-        $package->load('vendors');
         $eventsUsingPackage = Event::with(['customer'])
             ->where('package_id', $package->id)
             ->orderByDesc('event_date')
@@ -137,17 +134,16 @@ class PackageController extends Controller
 
     public function edit(Package $package)
     {
-        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
+
         $inclusions = Inclusion::where('is_active', true)->orderBy('name')->get();
-        $package->load('vendors');
-        return view('admin.packages.edit', compact('package', 'vendors', 'inclusions'));
+        return view('admin.packages.edit', compact('package', 'inclusions'));
     }
 
     public function update(Request $request, Package $package)
     {
         $data = $request->validate([
             'name'               => ['required', 'string', 'max:150', 'unique:packages,name,' . $package->id],
-            'description'        => ['nullable', 'string'],
+            'type' => ['required', 'string'],
             'price'              => ['required', 'numeric', 'min:0'],
             'is_active'          => ['sometimes', 'boolean'],
 
@@ -181,7 +177,7 @@ class PackageController extends Controller
         $package->update([
             'name'                 => $data['name'],
             'slug'                 => Str::slug($data['name']),
-            'description'          => $data['description'] ?? null,
+            'type'                 => $data['type'],
             'price'                => $data['price'],
             'is_active'            => $request->boolean('is_active', $package->is_active),
             'event_styling'        => $eventStylingArray,

@@ -9,7 +9,7 @@
         {{ $p->id }}: @js([
           'id'                   => $p->id,
           'name'                 => $p->name,
-          'description'          => $p->description,
+          'type'          => $p->type,
           'coordination'         => $p->coordination,
           'coordination_price'   => $p->coordination_price ?? 25000,
           'event_styling'        => is_array($p->event_styling) ? array_values($p->event_styling) : [],
@@ -74,8 +74,8 @@
                                             class="px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-800">Selected</span>
                                     </div>
 
-                                    <template x-if="pkg && pkg.description">
-                                        <p class="text-sm text-gray-600 mt-2" x-text="pkg.description"></p>
+                                    <template x-if="pkg && pkg.type">
+                                        <p class="text-sm text-gray-600 mt-2" x-text="pkg.type"></p>
                                     </template>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
@@ -200,94 +200,23 @@
                                 class="mt-1 block w-full pl-7" value="{{ old('budget') }}" />
                             <x-input-error :messages="$errors->get('budget')" class="mt-2" />
                         </div>
+
+                        <div class="md:col-span-2">
+                            <label for="guests" class="block text-sm font-medium text-gray-700">Guest
+                                List/Details</label>
+                            <textarea name="guests" id="guests" rows="4"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                placeholder="Enter guest names, count, or special requirements...">{{ old('guests') }}</textarea>
+                            @error('guests')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div class="md:col-span-2">
                             <x-input-label for="notes" value="Notes" />
                             <textarea id="notes" name="notes" rows="3"
                                 class="mt-1 w-full border rounded px-3 py-2">{{ old('notes') }}</textarea>
                             <x-input-error :messages="$errors->get('notes')" class="mt-2" />
-                        </div>
-
-                        {{-- Guests --}}
-                        <div class="md:col-span-2">
-                            <div x-data="{
-                                items: @js(old('guests', [])),
-                                draft: {name:'', email:'', contact_number:'', party_size:1},
-                                add() {
-                                    if(this.draft.name || this.draft.email || this.draft.contact_number){
-                                        this.items.push({...this.draft, saved: true});
-                                        this.draft = {name:'', email:'', contact_number:'', party_size:1};
-                                    }
-                                },
-                                remove(i){ this.items.splice(i,1); }
-                            }" class="bg-white rounded-lg shadow-sm space-y-3">
-
-                                <div class="flex items-center justify-between">
-                                    <h4 class="font-semibold">
-                                        Guests (<span x-text="items.length"></span>)
-                                    </h4>
-                                    <button type="button" @click="add()" class="px-3 py-2 border rounded text-sm">
-                                        Add Guest
-                                    </button>
-                                </div>
-
-                                {{-- Draft row --}}
-                                <div
-                                    class="grid grid-cols-1 md:grid-cols-5 gap-2 border p-4 mt-3 rounded-lg bg-slate-50">
-                                    <div class="md:col-span-3">
-                                        <x-input-label>Name</x-input-label>
-                                        <input type="text" class="w-full border rounded px-3 py-2" name="draft_name"
-                                            x-model="draft.name" />
-                                    </div>
-                                    <div class="md:col-span-2">
-                                        <x-input-label>Email</x-input-label>
-                                        <input type="email" class="w-full border rounded px-3 py-2" name="draft_email"
-                                            x-model="draft.email" />
-                                    </div>
-                                    <div class="md:col-span-2">
-                                        <x-input-label>Contact</x-input-label>
-                                        <input type="text" class="w-full border rounded px-3 py-2" name="draft_contact"
-                                            x-model="draft.contact_number" />
-                                    </div>
-                                    <div class="md:col-span-2">
-                                        <x-input-label>Party Size</x-input-label>
-                                        <input type="number" min="1" class="w-full border rounded px-3 py-2"
-                                            name="draft_party" x-model.number="draft.party_size" />
-                                    </div>
-                                </div>
-
-                                {{-- Saved guests --}}
-                                <template x-for="(g, i) in items" :key="i">
-                                    <div
-                                        class="grid grid-cols-1 md:grid-cols-5 gap-2 border p-4 mt-3 rounded-lg bg-slate-800/20">
-                                        <div class="md:col-span-3">
-                                            <x-input-label>Name</x-input-label>
-                                            <input type="text" class="w-full border rounded px-3 py-2"
-                                                :name="`guests[${i}][name]`" x-model="g.name" readonly />
-                                        </div>
-                                        <div class="md:col-span-2">
-                                            <x-input-label>Email</x-input-label>
-                                            <input type="email" class="w-full border rounded px-3 py-2"
-                                                :name="`guests[${i}][email]`" x-model="g.email" readonly />
-                                        </div>
-                                        <div class="md:col-span-2">
-                                            <x-input-label>Contact</x-input-label>
-                                            <input type="text" class="w-full border rounded px-3 py-2"
-                                                :name="`guests[${i}][contact_number]`" x-model="g.contact_number"
-                                                readonly />
-                                        </div>
-                                        <div class="md:col-span-2">
-                                            <x-input-label>Party Size</x-input-label>
-                                            <input type="number" min="1" class="w-full border rounded px-3 py-2"
-                                                :name="`guests[${i}][party_size]`" x-model.number="g.party_size"
-                                                readonly />
-                                        </div>
-                                        <div class="md:col-span-1 text-right flex items-end justify-center">
-                                            <button type="button" @click="remove(i)"
-                                                class="px-4 py-2 bg-red-700 text-white rounded">Remove</button>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
                         </div>
 
                     </div>

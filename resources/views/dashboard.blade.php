@@ -53,17 +53,6 @@
             @endif
 
 
-            {{-- Quick Actions --}}
-            {{-- <div class="bg-white shadow-sm rounded-lg p-6">
-                <h3 class="font-semibold mb-3">Quick Actions</h3>
-                <div class="flex flex-wrap gap-3">
-                    <a href="#" class="bg-violet-700 text-white px-4 py-2 rounded">View
-                        Payments</a>
-                    <a href="{{ route('reports.monthly') }}" class="bg-gray-800 text-white px-4 py-2 rounded">Monthly
-                        Report</a>
-                </div>
-            </div> --}}
-
             {{-- Recent Events --}}
             <div class="bg-white shadow-sm rounded-lg p-6">
                 <h3 class="font-semibold mb-3">Recent Events</h3>
@@ -219,174 +208,177 @@
 
             {{-- Available Packages (Customer) --}}
             @if(!empty($packages) && $packages->count())
-            <div class="bg-white shadow-sm rounded-lg p-6">
-                <h3 class="font-semibold mb-4">Available Packages</h3>
+            <div class="bg-white shadow-sm rounded-xl p-8">
+                <h3 class="text-2xl font-bold text-gray-900 mb-6">Available Packages</h3>
 
-                @php
-                $pal = [
-                ['grad' => 'from-emerald-700 to-emerald-900','ring' => 'ring-emerald-700/40','pill' => 'bg-emerald-800
-                text-emerald-100','price' => 'text-emerald-900'],
-                ['grad' => 'from-sky-700 to-sky-900','ring' => 'ring-sky-700/40','pill' => 'bg-sky-800
-                text-sky-100','price' => 'text-sky-900'],
-                ['grad' => 'from-violet-700 to-violet-900','ring' => 'ring-violet-700/40','pill' => 'bg-violet-800
-                text-violet-100','price' => 'text-violet-900'],
-                ['grad' => 'from-amber-700 to-amber-900','ring' => 'ring-amber-700/40','pill' => 'bg-amber-800
-                text-amber-100','price' => 'text-amber-900'],
-                ];
-                @endphp
-
-                <div class="space-y-6">
-                    @foreach($packages as $idx => $p)
+                <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    @foreach($packages as $package)
                     @php
-                    $c = $pal[$idx % count($pal)];
-                    $incs = $p->inclusions ?? collect();
-                    $sty = is_array($p->event_styling ?? null) ? $p->event_styling : [];
-                    $price = $p->price ?? null;
+                    $inclusions = $package->inclusions ?? collect();
+                    $styling = is_array($package->event_styling ?? null) ? $package->event_styling : [];
+                    $images = $package->images ?? collect();
+                    $mainImage = $images->first();
+                    @endphp
 
-                    $g = [];
-                    $dbImgs = $p->images ?? collect();
-                    for ($i = 0; $i < 4; $i++) { $img=$dbImgs[$i] ?? null; $g[$i]=[ 'url'=> $img?->url ?:
-                        "https://picsum.photos/seed/pkg-{$p->id}-{$i}/960/640",
-                        'alt' => $img?->alt ?: "Package image",
-                        ];
-                        }
-                        @endphp
+                    <div
+                        class="group relative bg-white rounded-xl border-2 border-gray-200 hover:border-slate-400 hover:shadow-xl transition-all duration-300 overflow-hidden">
+                        {{-- Featured Image --}}
+                        <div class="relative h-48 overflow-hidden">
+                            @if($mainImage)
+                            <img src="{{ asset('storage/' . $mainImage->path) }}"
+                                alt="{{ $mainImage->alt ?? $package->name }}"
+                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                            @else
+                            <div
+                                class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                <span class="text-gray-400 text-sm">No image</span>
+                            </div>
+                            @endif
 
-                        <div
-                            class="rounded-2xl overflow-hidden bg-white ring-1 {{ $c['ring'] }} shadow-sm hover:shadow-md transition">
-                            <div class="p-4 grid gap-4 lg:grid-cols-3 items-stretch">
-                                <div class="space-y-4 flex flex-col">
-                                    <div class="p-4 bg-gradient-to-br {{ $c['grad'] }} text-white rounded-t-lg">
-                                        <div class="flex items-start justify-between gap-3">
-                                            <div>
-                                                <div class="text-xl font-semibold tracking-tight">{{ $p->name }}</div>
-                                                @if(!is_null($price))
-                                                <div class="mt-0.5 text-lg font-bold">₱{{ number_format($p->price, 2) }}
-                                                </div>
-                                                @endif
-                                            </div>
-                                            <span
-                                                class="px-2 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur">
-                                                {{ $p->is_active ? 'Active' : 'Inactive' }}
-                                            </span>
-                                        </div>
-                                        @if($p->description)
-                                        <p class="mt-2 text-white/90 text-sm leading-snug">{{
-                                            Str::limit($p->description, 140) }}</p>
-                                        @endif
-                                    </div>
+                            {{-- Package Type Badge --}}
+                            @if($package->type)
+                            <div
+                                class="absolute top-3 right-3 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-semibold text-gray-700 shadow-sm">
+                                {{ $package->type }}
+                            </div>
+                            @endif
+                        </div>
 
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                            <div class="text-[11px] uppercase tracking-wide text-gray-500">Coordination
-                                            </div>
-                                            <div class="mt-1 font-semibold {{ $c['price'] }}">₱{{
-                                                number_format($p->coordination_price ?? 25000, 2) }}</div>
-                                        </div>
-                                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                            <div class="text-[11px] uppercase tracking-wide text-gray-500">Event Styling
-                                            </div>
-                                            <div class="mt-1 font-semibold {{ $c['price'] }}">₱{{
-                                                number_format($p->event_styling_price ?? 55000, 2) }}</div>
-                                        </div>
-                                    </div>
+                        <div class="p-6 space-y-4">
+                            {{-- Package Name & Price --}}
+                            <div>
+                                <h4 class="text-xl font-bold text-gray-900 mb-1">{{ $package->name }}</h4>
+                                <p class="text-2xl font-bold text-slate-600">₱{{ number_format($package->price, 2) }}
+                                </p>
+                            </div>
 
-                                    <div>
-                                        <div class="text-xs uppercase tracking-wide text-gray-500 mb-2">Inclusions</div>
-                                        @if($incs->isEmpty())
-                                        <div class="text-sm text-gray-500">—</div>
-                                        @else
-                                        <ul class="space-y-2">
-                                            @foreach($incs as $inc)
-                                            @php
-                                            $incNotes = trim((string)($inc->notes ?? ''));
-                                            $noteLines = $incNotes !== '' ? preg_split('/\r\n|\r|\n/', $incNotes) : [];
-                                            @endphp
-                                            <li class="rounded-lg border border-gray-200 bg-white p-3">
-                                                <div class="font-medium text-gray-900">
-                                                    {{ $inc->name }}
-                                                    @if($inc->category)
-                                                    <span
-                                                        class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] {{ $c['pill'] }} ring-1 ring-black/5">
-                                                        {{ $inc->category }}
-                                                    </span>
-                                                    @endif
-                                                </div>
-                                                @if(!empty($noteLines))
-                                                <ul class="mt-1.5 text-xs text-gray-700 list-disc pl-5 space-y-0.5">
-                                                    @foreach($noteLines as $line)
-                                                    @if(trim($line) !== '')
-                                                    <li>{{ $line }}</li>
-                                                    @endif
-                                                    @endforeach
-                                                </ul>
-                                                @endif
-                                            </li>
-                                            @endforeach
-                                        </ul>
-                                        @endif
-                                    </div>
-
-                                    <div>
-                                        <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Event Styling
-                                        </div>
-                                        <div class="mt-2 rounded-xl border border-gray-200 bg-gray-50 p-3">
-                                            @if(empty($sty))
-                                            <div class="text-sm text-gray-500">—</div>
-                                            @else
-                                            <ul class="text-sm text-gray-700 list-disc pl-5 space-y-0.5">
-                                                @foreach($sty as $item)
-                                                @if(trim($item) !== '')
-                                                <li>{{ $item }}</li>
-                                                @endif
-                                                @endforeach
-                                            </ul>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div class="text-xs uppercase tracking-wide text-gray-500 mb-1">Coordination
-                                        </div>
-                                        <div class="text-sm text-gray-700">{{ Str::limit($p->coordination ?? '—', 120)
-                                            }}</div>
-                                    </div>
-
-                                    <div class="pt-1 mt-auto">
-                                        <a href="{{ route('customer.events.create', ['package_id' => $p->id]) }}"
-                                            class="inline-flex items-center gap-2 rounded-lg bg-gray-900 text-white px-5 py-2 text-sm hover:bg-gray-800 transition focus:outline-none focus:ring-2 focus:ring-gray-400">
-                                            Book this package
-                                        </a>
-                                    </div>
+                            {{-- Service Prices --}}
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                    <div class="text-xs text-gray-500 mb-1">Coordination</div>
+                                    <div class="font-semibold text-gray-900">₱{{
+                                        number_format($package->coordination_price ?? 25000, 2) }}</div>
                                 </div>
-
-                                <div class="lg:col-span-2">
-                                    <div class="grid grid-cols-2 gap-2 h-full">
-                                        <figure class="col-span-2 aspect-[16/9] rounded-xl overflow-hidden relative">
-                                            <img src="{{ $g[0]['url'] }}" alt="{{ $g[0]['alt'] }}"
-                                                class="w-full h-full object-cover block" loading="lazy">
-                                        </figure>
-
-                                        <figure class="aspect-[4/3] rounded-xl overflow-hidden relative">
-                                            <img src="{{ $g[1]['url'] }}" alt="{{ $g[1]['alt'] }}"
-                                                class="w-full h-full object-cover block" loading="lazy">
-                                        </figure>
-                                        <figure class="aspect-[4/3] rounded-xl overflow-hidden relative">
-                                            <img src="{{ $g[2]['url'] }}" alt="{{ $g[2]['alt'] }}"
-                                                class="w-full h-full object-cover block" loading="lazy">
-                                        </figure>
-
-                                        <figure class="col-span-2 aspect-[16/6] rounded-xl overflow-hidden relative">
-                                            <img src="{{ $g[3]['url'] }}" alt="{{ $g[3]['alt'] }}"
-                                                class="w-full h-full object-cover block" loading="lazy">
-                                        </figure>
-                                    </div>
+                                <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                    <div class="text-xs text-gray-500 mb-1">Styling</div>
+                                    <div class="font-semibold text-gray-900">₱{{
+                                        number_format($package->event_styling_price ?? 55000, 2) }}</div>
                                 </div>
                             </div>
+
+                            {{-- Quick Info --}}
+                            <div class="space-y-2 pt-2 border-t border-gray-200">
+                                <div class="flex items-center gap-2 text-sm text-gray-600">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    <span>{{ $inclusions->count() }} Inclusions</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-sm text-gray-600">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                                    </svg>
+                                    <span>{{ count($styling) }} Styling Items</span>
+                                </div>
+                            </div>
+
+                            {{-- Book Button --}}
+                            <a href="{{ route('customer.events.create', ['package_id' => $package->id]) }}"
+                                class="block w-full mt-4 px-6 py-3 bg-gradient-to-r from-slate-600 to-gray-600 text-white text-center font-semibold rounded-lg hover:from-slate-700 hover:to-gray-700 transition-all duration-300 shadow-md hover:shadow-lg">
+                                Book This Package
+                            </a>
+
+                            {{-- View Details Link --}}
+                            <button type="button" onclick="toggleDetails({{ $package->id }})"
+                                class="w-full text-sm text-slate-600 hover:text-slate-800 font-medium flex items-center justify-center gap-1">
+                                <span class="toggle-text-{{ $package->id }}">View Full Details</span>
+                                <svg class="w-4 h-4 transition-transform duration-300 toggle-icon-{{ $package->id }}"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
                         </div>
-                        @endforeach
+
+                        {{-- Expandable Details --}}
+                        <div id="details-{{ $package->id }}"
+                            class="overflow-hidden transition-all duration-500 ease-in-out max-h-0 opacity-0">
+                            <div class="border-t border-gray-200 bg-gray-50 p-6">
+                                {{-- Inclusions --}}
+                                @if($inclusions->isNotEmpty())
+                                <div class="mb-4">
+                                    <h5 class="font-semibold text-gray-900 mb-2">Inclusions</h5>
+                                    <ul class="space-y-2">
+                                        @foreach($inclusions as $inclusion)
+                                        <li class="flex items-start gap-2 text-sm">
+                                            <svg class="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            <span class="text-gray-700">{{ $inclusion->name }}</span>
+                                        </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                @endif
+
+                                {{-- Event Styling --}}
+                                @if(!empty($styling))
+                                <div class="mb-4">
+                                    <h5 class="font-semibold text-gray-900 mb-2">Event Styling</h5>
+                                    <ul class="space-y-1 text-sm text-gray-700 list-disc list-inside">
+                                        @foreach($styling as $item)
+                                        @if(trim($item) !== '')
+                                        <li>{{ $item }}</li>
+                                        @endif
+                                        @endforeach
+                                    </ul>
+                                </div>
+                                @endif
+
+                                {{-- Coordination --}}
+                                @if($package->coordination)
+                                <div>
+                                    <h5 class="font-semibold text-gray-900 mb-2">Coordination</h5>
+                                    <p class="text-sm text-gray-700">{{ $package->coordination }}</p>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
                 </div>
             </div>
+
+            <script>
+                function toggleDetails(packageId) {
+    const details = document.getElementById('details-' + packageId);
+    const icon = document.querySelector('.toggle-icon-' + packageId);
+    const text = document.querySelector('.toggle-text-' + packageId);
+    
+    if (details.classList.contains('max-h-0')) {
+        // Expand
+        details.style.maxHeight = details.scrollHeight + 'px';
+        details.classList.remove('max-h-0', 'opacity-0');
+        details.classList.add('opacity-100');
+        icon.style.transform = 'rotate(180deg)';
+        text.textContent = 'Hide Details';
+    } else {
+        // Collapse
+        details.style.maxHeight = '0px';
+        details.classList.add('max-h-0', 'opacity-0');
+        details.classList.remove('opacity-100');
+        icon.style.transform = 'rotate(0deg)';
+        text.textContent = 'View Full Details';
+    }
+}
+            </script>
             @endif
 
             @endif

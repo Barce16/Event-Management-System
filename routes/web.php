@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PublicBookingController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ReportsController;
@@ -26,12 +27,35 @@ use App\Models\Package;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
 
 Route::get('/events', function () {
-    return view('events');
+    $packages = Package::with(['images', 'inclusions'])
+        ->where('is_active', true)
+        ->orderBy('type')
+        ->orderBy('price')
+        ->get()
+        ->groupBy(function ($package) {
+            if ($package->type instanceof \App\Enums\PackageType) {
+                return $package->type->value;
+            }
+            return $package->type;
+        });
+
+    return view('events', compact('packages'));
 })->name('events.index');
 
+Route::get('/booking-success', function () {
+
+    if (!session()->has('success')) {
+        return redirect()->route('welcome');
+    }
+    return view('booking.success');
+})->name('booking.success');
+
+
+Route::get('/book/{package}', [PublicBookingController::class, 'show'])->name('book.package');
+Route::post('/book/{package}', [PublicBookingController::class, 'store'])->name('book.store');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -115,8 +139,8 @@ Route::middleware('auth')->group(function () {
             // -- PAYMENTS
             Route::get('/events/{event}/payment/verify', [AdminPaymentController::class, 'verifyPayment'])
                 ->name('payment.verification');
-            Route::post('/events/{event}/approve-payment', [AdminPaymentController::class, 'approvePayment'])->name('payments.approve');
-            Route::post('/events/{event}/reject-payment', [AdminPaymentController::class, 'rejectPayment'])->name('payments.reject');
+            Route::post('/events/{event}/approve-payment', [AdminPaymentController::class, 'approvePayment'])->name(name: 'eventPayments.approve');
+            Route::post('/events/{event}/reject-payment', [AdminPaymentController::class, 'rejectPayment'])->name('eventPayments.reject');
 
             Route::get('payments', [CustomerPaymentController::class, 'index'])->name('payments.index');
             Route::post('payments/{paymentId}/approve', [CustomerPaymentController::class, 'approve'])->name('payments.approve');
@@ -126,13 +150,6 @@ Route::middleware('auth')->group(function () {
             Route::prefix('management')->name('management.')->group(function () {
 
                 Route::get('/', [AdminController::class, 'managementIndex'])->name('index');
-
-                Route::resource('vendors', controller: VendorController::class)
-                    ->names('vendors');
-
-                Route::patch('vendors/{package}/toggle', [VendorController::class, 'toggle'])
-                    ->name('vendors.toggle');
-
 
                 Route::resource('packages', controller: PackageController::class)
                     ->names('packages');

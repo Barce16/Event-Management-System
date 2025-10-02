@@ -43,7 +43,6 @@ class DashboardController extends Controller
             }
 
             $packages = Package::with([
-                'vendors:id,name,category,price',
                 'inclusions'
             ])
                 ->where('is_active', true)

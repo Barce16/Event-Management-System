@@ -14,7 +14,7 @@ class Event extends Model
         'venue',
         'theme',
         'budget',
-        'guest_count',
+        'guests',
         'status',
         'notes'
     ];
@@ -22,7 +22,6 @@ class Event extends Model
     protected $casts = [
         'event_date' => 'date',
         'budget' => 'decimal:2',
-        'guest_count' => 'integer',
     ];
 
     public function customer()
@@ -33,22 +32,11 @@ class Event extends Model
     {
         return $this->belongsTo(Package::class);
     }
-    public function vendors()
-    {
-        return $this->belongsToMany(Vendor::class)
-            ->withTimestamps();
-    }
-
     public function staffs()
     {
         return $this->belongsToMany(Staff::class, 'event_staff', 'event_id', 'staff_id')
             ->withPivot(['assignment_role', 'pay_rate', 'pay_status'])
             ->withTimestamps();
-    }
-
-    public function guests()
-    {
-        return $this->hasMany(Guest::class);
     }
 
     public function inclusions()

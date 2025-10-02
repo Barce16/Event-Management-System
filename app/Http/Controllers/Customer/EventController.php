@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\Vendor;
 use App\Models\Package;
 use App\Models\Inclusion;
 use App\Models\Customer;
@@ -18,7 +17,7 @@ class EventController extends Controller
         $customer = $request->user()->customer;
         abort_if(!$customer, 403);
 
-        $events = Event::with(['package', 'vendors'])
+        $events = Event::with(['package'])
             ->where('customer_id', $customer->id)
             ->orderByDesc('event_date')
             ->paginate(12);
@@ -33,14 +32,10 @@ class EventController extends Controller
         abort_if(!$customer, 403);
 
         $packages = Package::with([
-            'vendors:id,name,category,price',
             'inclusions'
         ])->where('is_active', true)->orderBy('price')->get();
 
-
-        $vendors = Vendor::where('is_active', true)->orderBy('name')->get();
-
-        return view('customers.events.create', compact('packages', 'vendors'));
+        return view('customers.events.create', compact('packages'));
     }
 
     public function store(Request $request)
@@ -52,16 +47,11 @@ class EventController extends Controller
             'venue'        => ['nullable', 'string', 'max:255'],
             'theme'        => ['nullable', 'string', 'max:255'],
             'budget'       => ['nullable', 'numeric', 'min:0'],
+            'guests'       => ['nullable', 'string', 'max:5000'],
             'notes'        => ['nullable', 'string', 'max:5000'],
 
             'inclusions'   => ['nullable', 'array'],
             'inclusions.*' => ['integer', 'exists:inclusions,id'],
-
-            'guests'                     => ['nullable', 'array'],
-            'guests.*.name'             => ['nullable', 'string', 'max:150'],
-            'guests.*.email'            => ['nullable', 'email', 'max:255'],
-            'guests.*.contact_number'   => ['nullable', 'string', 'max:255'],
-            'guests.*.party_size'       => ['nullable', 'integer', 'min:1'],
         ]);
 
         $package = Package::with(['inclusions:id,price'])->findOrFail($data['package_id']);
@@ -90,28 +80,14 @@ class EventController extends Controller
         $customer = $user->customer ?? Customer::firstOrCreate(
             ['user_id' => $user->id],
             [
-                'name'    => $user->name,
-                'email'   => $user->email,
-                'phone'   => $user->phone ?? null,
-                'address' => $user->address ?? null,
+                'customer_name' => $user->name,
+                'email'         => $user->email,
+                'phone'         => $user->phone ?? null,
+                'address'       => $user->address ?? null,
             ]
         );
 
-
-        $guestPayload = collect($data['guests'] ?? [])
-            ->map(function ($g) {
-                return [
-                    'name'           => trim($g['name'] ?? ''),
-                    'email'          => trim($g['email'] ?? ''),
-                    'contact_number' => trim($g['contact_number'] ?? ''),
-                    'party_size'     => (int) ($g['party_size'] ?? 1),
-                ];
-            })
-
-            ->filter(fn($g) => $g['name'] !== '' || $g['email'] !== '' || $g['contact_number'] !== '')
-            ->values();
-
-        DB::transaction(function () use ($data, $customer, $selectedIds, $inclusionPrices, $guestPayload) {
+        DB::transaction(function () use ($data, $customer, $selectedIds, $inclusionPrices) {
             $event = Event::create([
                 'customer_id' => $customer->id,
                 'name'        => $data['name'],
@@ -120,10 +96,10 @@ class EventController extends Controller
                 'venue'       => $data['venue'] ?? null,
                 'theme'       => $data['theme'] ?? null,
                 'budget'      => $data['budget'] ?? null,
+                'guests'      => $data['guests'] ?? null,
                 'notes'       => $data['notes'] ?? null,
                 'status'      => 'requested',
             ]);
-
 
             if ($selectedIds->isNotEmpty()) {
                 $attach = [];
@@ -131,10 +107,6 @@ class EventController extends Controller
                     $attach[$incId] = ['price_snapshot' => (float) ($inclusionPrices[$incId] ?? 0)];
                 }
                 $event->inclusions()->attach($attach);
-            }
-
-            if ($guestPayload->isNotEmpty()) {
-                $event->guests()->createMany($guestPayload->all());
             }
         });
 
@@ -163,14 +135,14 @@ class EventController extends Controller
         $customer = $request->user()->customer;
         abort_if(!$customer || $event->customer_id !== $customer->id, 403);
 
-        $packages = Package::with(['vendors' => fn($q) => $q->where('is_active', true)])
-            ->where('is_active', true)->orderBy('name')->get();
+        $packages = Package::with([
+            'inclusions'
+        ])->where('is_active', true)->orderBy('name')->get();
 
 
         $event->load(['package']);
-        $selectedVendorIds = $event->vendors->pluck('id')->all();
 
-        return view('customers.events.edit', compact('event', 'packages', 'selectedVendorIds'));
+        return view('customers.events.edit', compact('event', 'packages'));
     }
 
     public function update(Request $request, Event $event)
@@ -195,14 +167,8 @@ class EventController extends Controller
                 'min:0',
                 'regex:/^\d+(\.\d+)?$/',
             ],
-            'guest_count' => [
-                'nullable',
-                'integer',
-                'min:1',
-            ],
+            'guests'       => ['nullable', 'string', 'max:5000'], // Fixed: removed extra comma
             'notes'        => ['nullable', 'string', 'max:2000'],
-            'vendors'      => ['sometimes', 'array'],
-            'vendors.*'    => ['integer', 'exists:vendors,id'],
         ]);
 
         DB::transaction(function () use ($event, $data) {
@@ -213,11 +179,9 @@ class EventController extends Controller
                 'venue'       => $data['venue'] ?? null,
                 'theme'       => $data['theme'] ?? null,
                 'budget'      => $data['budget'] ?? null,
-                'guest_count' => $data['guest_count'] ?? null,
+                'guests'      => $data['guests'] ?? null,
                 'notes'       => $data['notes'] ?? null,
             ]);
-
-            $event->vendors()->sync($data['vendors'] ?? []);
         });
 
         return redirect()->route('customer.events.show', $event)->with('success', 'Event updated.');
