@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\PackageType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +13,7 @@ class Package extends Model
     protected $fillable = [
         'name',
         'slug',
-        'type' => PackageType::class,
+        'type',
         'price',
         'is_active',
         'event_styling',
