@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Inclusion;
 use App\Models\User;
 use App\Models\Package;
-use App\Models\Vendor;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Seeder;
@@ -62,22 +61,6 @@ class DatabaseSeeder extends Seeder
             'password'  => Hash::make('password'),
         ]);
 
-        // ---- VENDORS ----
-        $vendors = [
-            ['name' => 'Premium Catering',           'category' => 'Catering',        'price' => 50000],
-            ['name' => 'Everlight Sounds & Lights',  'category' => 'Lights & Sounds', 'price' => 15000],
-            ['name' => 'SnapShot Photo & Video',     'category' => 'Photo/Video',     'price' => 20000],
-            ['name' => 'Blossom Florals',            'category' => 'Florist',         'price' => 8000],
-        ];
-        foreach ($vendors as $v) {
-            Vendor::firstOrCreate(['name' => $v['name']], $v);
-        }
-
-        // Fetch vendor IDs safely
-        $catering = Vendor::where('category', 'Catering')->value('id');
-        $lights   = Vendor::where('category', 'Lights & Sounds')->value('id');
-        $photo    = Vendor::where('category', 'Photo/Video')->value('id');
-        $florist  = Vendor::where('category', 'Florist')->value('id');
 
         // ---- PACKAGES ----
         $basic = Package::firstOrCreate(
@@ -105,8 +88,6 @@ class DatabaseSeeder extends Seeder
             'event_styling' => ['Stage setup', '2-3 candles', 'Aisle decor'],
             'coordination'  => 'Day-of coordination, supplier follow-ups',
         ]);
-
-        $premium->vendors()->sync(array_values(array_filter([$catering, $photo, $florist, $lights])));
 
         // ---- INCLUSIONS ----
         // Insert the inclusions directly as per the SQL provided
