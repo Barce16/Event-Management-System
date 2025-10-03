@@ -1,37 +1,17 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class UpdateEventStatusEnum extends Migration
 {
     public function up()
     {
-        Schema::table('events', function (Blueprint $table) {
-            $table->enum('status', [
-                'requested',
-                'approved',
-                'scheduled',
-                'completed',
-                'rejected',
-                'request_meeting',
-                'meeting',
-            ])->default('requested')->change();
-        });
+        DB::statement("ALTER TABLE `events` MODIFY `status` ENUM('requested', 'approved', 'meeting', 'scheduled', 'completed', 'rejected', 'request_meeting') NOT NULL DEFAULT 'requested'");
     }
 
     public function down()
     {
-        Schema::table('events', function (Blueprint $table) {
-            $table->enum('status', [
-                'requested',
-                'approved',
-                'scheduled',
-                'completed',
-                'rejected',
-                'request_meeting',
-            ])->default('requested')->change();
-        });
+        DB::statement("ALTER TABLE `events` MODIFY `status` ENUM('requested', 'approved', 'scheduled', 'completed', 'rejected', 'request_meeting') NOT NULL DEFAULT 'requested'");
     }
 }
