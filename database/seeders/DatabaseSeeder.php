@@ -62,33 +62,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
 
-        // ---- PACKAGES ----
-        $basic = Package::firstOrCreate(
-            ['name' => 'Basic Wedding'],
-            [
-                'slug'        => Str::slug('Basic Wedding'),
-                'price'  => 50000,
-                'description' => 'Core vendors included',
-                'is_active'   => true,
-            ]
-        );
-
-        $premium = Package::firstOrCreate(
-            ['name' => 'Premium Wedding'],
-            [
-                'slug'        => Str::slug('Premium Wedding'),
-                'price'  => 120000,
-                'description' => 'Premium lineup',
-                'is_active'   => true,
-            ]
-        );
-
-        // Sync vendors to packages
-        $basic->update([
-            'event_styling' => ['Stage setup', '2-3 candles', 'Aisle decor'],
-            'coordination'  => 'Day-of coordination, supplier follow-ups',
-        ]);
-
         // ---- INCLUSIONS ----
         // Insert the inclusions directly as per the SQL provided
         Inclusion::insert([
